@@ -33,16 +33,35 @@ export default function Landing() {
         setError(null);
         try {
             if (!window.ethereum) {
-                // Mock connection for the hackathon demo if no wallet extension exists
-                setTimeout(() => {
-                    setAddress("0x71C...976F");
-                    sessionStorage.setItem('arc-wallet', "0x71C...976F");
-                    setTimeout(() => navigate('/dashboard'), 1500);
-                }, 1500);
+                setError("No wallet detected. Please install MetaMask to connect.");
+                setIsConnecting(false);
                 return;
             }
 
             const provider = new ethers.BrowserProvider(window.ethereum);
+            
+            // Request Arc Testnet chain switch
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x4CEA12' }], // 5042002 in hex
+                });
+            } catch (switchErr) {
+                // Chain not added — add it
+                if (switchErr.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x4CEA12',
+                            chainName: 'Arc Testnet',
+                            nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
+                            rpcUrls: ['https://rpc.testnet.arc.network'],
+                            blockExplorerUrls: ['https://testnet.arcscan.app'],
+                        }],
+                    });
+                }
+            }
+
             const accounts = await provider.send("eth_requestAccounts", []);
 
             if (accounts.length > 0) {
@@ -54,7 +73,7 @@ export default function Landing() {
             }
         } catch (err) {
             console.error(err);
-            setError("Failed to connect wallet.");
+            setError(err.message || "Failed to connect wallet.");
             setIsConnecting(false);
         }
     };

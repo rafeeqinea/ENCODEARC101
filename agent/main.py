@@ -504,20 +504,50 @@ def apply_decision_effects(decision, balances):
                 obl["funded_by"] = "Auto-funded by treasury balance"
 
 
-@app.post("/api/agent/run")
+async def _execute_onchain(decision: dict, balances: dict) -> Optional[str]:
+    """Execute a decision on-chain via the ArcTreasury contract.
+    
+    Returns the real transaction hash if successful, None otherwise.
+    """
+    from .config import USDC_ADDRESS, EURC_ADDRESS, USYC_ADDRESS
+    
+    action = decision.get("action")
+    amount = decision.get("amount", 0)
+    if amount <= 0:
+        return None
+    
+    amount_wei = int(amount * 10**18)
+    
+    if action == "PAYOUT":
+        token_addr = USDC_ADDRESS if "USDC" in decision.get("token", "") else EURC_ADDRESS
+        return await arc_client.withdraw(token_addr, amount_wei, arc_client.account.address)
+    
+    elif action == "FX_SWAP":
+        return await arc_client.swap_fx(USDC_ADDRESS, EURC_ADDRESS, amount_wei)
+    
+    elif action == "YIELD_DEPOSIT":
+        return await arc_client.deposit_yield(amount_wei)
+    
+    elif action == "YIELD_WITHDRAW":
+        return await arc_client.withdraw_yield(amount_wei)
+    
+    return None
 async def run_agent_cycle():
     """
     Trigger one manual agent cycle. This is the REAL deal:
-    1. Fetch on-chain balances
-    2. Get FX rate from StableFX
+    1. Fetch on-chain balances (or seed data fallback)
+    2. Get FX rate from StableFX/Stork
     3. Get yield info
     4. Check obligations
     5. Run strategy
     6. Execute decision
-    7. Return result
+    7. Execute on-chain if blockchain available
+    8. Return result
     """
     try:
         # 1. Get real balances
+        balance_source = "seed"
+        balances = dict(seed_balances)  # start with seed, override with on-chain
         try:
             if arc_client and blockchain_available:
                 raw_balances = await arc_client.get_balances()
@@ -527,16 +557,15 @@ async def run_agent_cycle():
                     "usyc": raw_balances["USYC"] / 10**18,
                 }
                 balance_source = "on-chain"
-            else:
-                balances = {"usdc": 250000.0, "eurc": 85000.0, "usyc": 150000.0}
-                balance_source = "seed"
-        except Exception:
-            balances = {"usdc": 250000.0, "eurc": 85000.0, "usyc": 150000.0}
-            balance_source = "seed"
+                logger.info("On-chain balances: USDC=%s, EURC=%s, USYC=%s",
+                            balances["usdc"], balances["eurc"], balances["usyc"])
+        except Exception as exc:
+            logger.warning("On-chain balance read failed, using seed: %s", exc)
         
         # 2. Get FX rate
         fx_data = await oracle.get_fx_rate()
         fx_rate = fx_data.get("rate", 0.9215) if isinstance(fx_data, dict) else fx_data.rate
+        fx_source = fx_data.get("source", "unknown") if isinstance(fx_data, dict) else "unknown"
         
         # 3. Get yield info
         yield_data = await oracle.get_yield_rate()
@@ -562,13 +591,24 @@ async def run_agent_cycle():
             logger.info("Executing Agent Cycle via basic threshold math logic.")
             decision = make_decision(balances, fx_rate, yield_data, upcoming, prediction, recommendation)
         
-        # 7. Add to decision history with full context snapshot
+        # 7. Execute on-chain transaction if blockchain is available
+        tx_hash = None
+        if arc_client and blockchain_available:
+            try:
+                tx_hash = await _execute_onchain(decision, balances)
+                logger.info("On-chain tx executed: %s", tx_hash)
+            except Exception as exc:
+                logger.warning("On-chain execution failed: %s", exc)
+        
+        # 8. Add to decision history with full context snapshot
         decision["id"] = f"dec_{len(decision_history)+1:03d}"
         decision["timestamp"] = datetime.utcnow().isoformat() + "Z"
-        decision["tx_hash"] = f"0x{secrets.token_hex(32)}"
+        decision["tx_hash"] = tx_hash or f"0x{secrets.token_hex(32)}"
+        decision["on_chain"] = tx_hash is not None
         decision["snapshot"] = {
             "balances": balances,
             "fx_rate": fx_rate,
+            "fx_source": fx_source,
             "forecast": prediction,
             "recommendation": recommendation,
             "risk": risk_metrics,
@@ -576,14 +616,14 @@ async def run_agent_cycle():
         }
         decision_history.insert(0, decision)
         
-        # 8. Update agent state
+        # 9. Update agent state
         agent_state["total_decisions"] += 1
         agent_state["last_decision_time"] = decision["timestamp"]
         
-        # 9. Update related state (obligations, yield, etc.)
+        # 10. Update related state (obligations, yield, etc.)
         apply_decision_effects(decision, balances)
         
-        # 10. Broadcast via WebSocket
+        # 11. Broadcast via WebSocket
         await broadcast_decision(decision)
         
         return {
@@ -592,7 +632,9 @@ async def run_agent_cycle():
             "balances": balances,
             "balance_source": balance_source,
             "fx_rate": fx_rate,
-            "prediction": prediction
+            "fx_source": fx_source,
+            "prediction": prediction,
+            "on_chain": tx_hash is not None,
         }
     except Exception as e:
         logger.exception("Error in run_agent_cycle:")
@@ -606,27 +648,30 @@ async def run_agent_cycle():
 @app.get("/api/wallet")
 async def api_wallet() -> Dict[str, Any]:
     """Return the agent's wallet info and gas balance."""
-    address = "0x624bfC2a364C83c42F980F878c2177F76230dd44"
+    from .config import TREASURY_CONTRACT as treasury_addr
+    address = treasury_addr or "0x624bfC2a364C83c42F980F878c2177F76230dd44"
+    gas_balance = 0.0
+    source = "seed"
+    
     if blockchain_available and arc_client:
         try:
             address = arc_client.account.address
-            # In a real app we'd fetch native gas. Since Arc Testnet uses USDC for gas,
-            # we check the wallet's native balance if possible, or USDC balance.
-            usdc_balance = 19.93 # Placeholder gas
-            return {
-                "address": address,
-                "balance_usdc": usdc_balance,
-                "chain": "Arc Testnet",
-                "chain_id": 5042002
-            }
+            # Arc uses USDC as gas — fetch native balance
+            raw_balance = await arc_client.w3.eth.get_balance(arc_client.account.address)
+            gas_balance = raw_balance / 10**18
+            source = "on-chain"
         except Exception as exc:
-            logger.warning("get_wallet failed, using fallback: %s", exc)
+            logger.warning("get_wallet failed: %s", exc)
+            gas_balance = 19.93
 
     return {
         "address": address,
-        "balance_usdc": 19.93,
+        "balance_usdc": gas_balance if source == "on-chain" else 19.93,
         "chain": "Arc Testnet",
-        "chain_id": 5042002
+        "chain_id": 5042002,
+        "treasury_contract": treasury_addr,
+        "blockchain_available": blockchain_available,
+        "source": source,
     }
 
 

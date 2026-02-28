@@ -71,9 +71,11 @@ An SDK specifically designed for AI agent integration would be valuable — some
 
 ### Recommendations for Circle
 1. **AI Agent SDK** — As autonomous agents become more common, a Circle SDK optimized for agent consumption (structured JSON, clear error codes, streaming updates) would be a significant differentiator.
-2. **Oracle partnerships** — Tighter integration between Stork price feeds and StableFX rates would enable more sophisticated trading strategies.
-3. **Testnet sandbox** — A complete sandbox environment with USDC, EURC, USYC, StableFX, and CPN all working together on testnet would accelerate builder onboarding significantly.
+2. **Oracle partnerships** — Tighter integration between Stork price feeds and StableFX rates would enable more sophisticated trading strategies. We used Stork's REST API (`rest.jp.stork-oracle.network`) and WebSocket for real-time EURC/USD data — a first-party Circle price feed alongside Stork would be powerful.
+3. **Testnet sandbox** — A complete sandbox environment with USDC, EURC, USYC, StableFX, and CPN all working together on testnet would accelerate builder onboarding significantly. Currently USYC is only on Ethereum Sepolia (Teller at `0x96424C885951ceb4B79fecb934eD857999e6f82B`), StableFX requires institutional access, and CPN requires OFI status.
 4. **Webhook/event system** — Real-time notifications for rate changes, settlement completions, and yield events would enable event-driven architectures instead of polling.
+5. **Gateway docs clarity** — The Circle Gateway integration would benefit from testnet-accessible APIs and clearer examples for programmatic USDC bridging scenarios.
+6. **Bridge Kit for Arc** — The Arc Bridge Kit documentation could include more detailed examples for cross-chain USDC settlement patterns, especially for agent-driven use cases.
 
 ---
 
