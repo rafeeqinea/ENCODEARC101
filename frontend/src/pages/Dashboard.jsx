@@ -27,7 +27,7 @@ export default function Dashboard() {
             {/* Hero stat cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard label="USDC Balance" value={formatCurrency(animatedUsdc)} icon={DollarSign} delay={0} />
-                <StatCard label="EURC Balance" value={formatCurrency(animatedEurc)} icon={Euro} delay={0.05} />
+                <StatCard label="EURC Balance" value={formatCurrency(animatedEurc, 2, 'EUR')} icon={Euro} delay={0.05} />
                 <StatCard label="USYC Balance" value={formatCurrency(animatedUsyc)} icon={Landmark} color="var(--color-success)" delay={0.1} />
             </div>
 
@@ -35,7 +35,7 @@ export default function Dashboard() {
             <div className="flex items-center gap-4">
                 <div>
                     <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Total Treasury Value</p>
-                    <p className="font-mono text-3xl font-bold text-[var(--color-text-primary)] transition-colors duration-300">
+                    <p className="treasury-value font-mono text-3xl font-bold text-[var(--color-text-primary)] transition-colors duration-300">
                         {formatCurrency(animatedTotal)}
                     </p>
                 </div>

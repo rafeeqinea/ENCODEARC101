@@ -75,6 +75,14 @@ export default function FXMonitor() {
 
     return (
         <div className="max-w-[1200px] mx-auto space-y-6">
+            {/* Header pill */}
+            <div className="flex items-center justify-end">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
+                    <div className="w-2 h-2 rounded-full bg-[var(--color-success)] pulse-live" />
+                    <span className="text-[0.65rem] font-medium font-mono text-[var(--color-success)] uppercase tracking-wider">StableFX Active</span>
+                </div>
+            </div>
+
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard

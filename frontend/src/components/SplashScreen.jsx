@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Zap, Check, Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
+import ArcLogo from './ArcLogo'
 
 const STATUS_ITEMS = [
     { loading: 'Connecting to Arc Testnet...', done: 'Connected', delay: 1.5 },
@@ -64,12 +65,10 @@ export default function SplashScreen() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex items-center gap-3"
+                    className="flex flex-col items-center gap-4"
                 >
-                    <div className="w-12 h-12 rounded-xl bg-[#F97316] flex items-center justify-center" style={{ boxShadow: '0 0 30px rgba(249,115,22,0.4)' }}>
-                        <Zap className="w-6 h-6 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-bold text-white font-heading" style={{ textShadow: '0 0 20px rgba(249,115,22,0.3)' }}>
+                    <ArcLogo size={80} />
+                    <h1 className="text-4xl font-bold text-white font-heading mt-2" style={{ textShadow: '0 0 20px rgba(249,115,22,0.3)' }}>
                         ArcTreasury
                     </h1>
                 </motion.div>

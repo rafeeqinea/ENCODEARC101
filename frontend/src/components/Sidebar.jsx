@@ -1,8 +1,9 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { LayoutDashboard, Bot, ArrowLeftRight, TrendingUp, ClipboardList, Boxes, Zap, Fuel } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
+import ArcLogo from './ArcLogo'
 
 const NAV_ITEMS = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -13,7 +14,7 @@ const NAV_ITEMS = [
     { to: '/architecture', icon: Boxes, label: 'Architecture' },
 ]
 
-export default function Sidebar({ agentStatus, isDemo }) {
+export default React.memo(function Sidebar({ agentStatus, isDemo }) {
     const location = useLocation()
     const [wallet, setWallet] = useState(null)
 
@@ -37,11 +38,11 @@ export default function Sidebar({ agentStatus, isDemo }) {
             {/* Logo */}
             <div className="px-5 pt-4 pb-3">
                 <div className="flex items-center gap-2.5">
-                    <div className="neon-logo w-8 h-8 rounded-lg bg-[var(--color-accent)] flex items-center justify-center">
-                        <Zap className="w-4 h-4 text-white" />
-                    </div>
+                    <ArcLogo size={40} />
                     <div>
-                        <h1 className="font-heading text-base font-bold text-[var(--color-text-primary)] leading-tight">ArcTreasury</h1>
+                        <span className="font-heading text-lg font-bold tracking-tight text-[var(--color-text-primary)]">
+                            ArcTreasury
+                        </span>
                         <p className="text-[0.65rem] text-[var(--color-text-muted)] leading-tight">AI-Powered Treasury Agent</p>
                     </div>
                 </div>
@@ -132,4 +133,4 @@ export default function Sidebar({ agentStatus, isDemo }) {
             </div>
         </aside>
     )
-}
+})

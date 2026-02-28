@@ -1,8 +1,8 @@
-export function formatCurrency(value, decimals = 2) {
-    if (value == null) return '$0.00'
+export function formatCurrency(value, decimals = 2, currency = 'USD') {
+    if (value == null) return currency === 'USD' ? '$0.00' : '€0.00'
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: currency,
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     }).format(value)

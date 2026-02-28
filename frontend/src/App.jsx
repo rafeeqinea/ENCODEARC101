@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Loader2 } from 'lucide-react'
 import DashboardLayout from './layouts/DashboardLayout'
-import Dashboard from './pages/Dashboard'
-import Agent from './pages/Agent'
-import FXMonitor from './pages/FXMonitor'
-import Yield from './pages/Yield'
-import Obligations from './pages/Obligations'
-import Architecture from './pages/Architecture'
+import SplashScreen from './components/SplashScreen'
+
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Agent = lazy(() => import('./pages/Agent'))
+const FXMonitor = lazy(() => import('./pages/FXMonitor'))
+const Yield = lazy(() => import('./pages/Yield'))
+const Obligations = lazy(() => import('./pages/Obligations'))
+const Architecture = lazy(() => import('./pages/Architecture'))
 import SplashScreen from './components/SplashScreen'
 
 export default function App() {
@@ -37,16 +40,23 @@ export default function App() {
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
           <BrowserRouter>
-            <Routes>
-              <Route element={<DashboardLayout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="agent" element={<Agent />} />
-                <Route path="fx" element={<FXMonitor />} />
-                <Route path="yield" element={<Yield />} />
-                <Route path="obligations" element={<Obligations />} />
-                <Route path="architecture" element={<Architecture />} />
-              </Route>
-            </Routes>
+            <Suspense fallback={
+              <div className="w-full h-screen flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-2">
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--color-accent)]" />
+                <span className="text-sm font-medium">Loading Module...</span>
+              </div>
+            }>
+              <Routes>
+                <Route element={<DashboardLayout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="agent" element={<Agent />} />
+                  <Route path="fx" element={<FXMonitor />} />
+                  <Route path="yield" element={<Yield />} />
+                  <Route path="obligations" element={<Obligations />} />
+                  <Route path="architecture" element={<Architecture />} />
+                </Route>
+              </Routes>
+            </Suspense>
           </BrowserRouter>
         </motion.div>
       )}

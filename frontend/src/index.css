@@ -264,9 +264,11 @@ html.dark .recharts-layer .recharts-line-curve {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 20px var(--color-card-shadow, rgba(26, 26, 26, 0.04));
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s, border-image 0.2s;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+  will-change: transform, box-shadow;
+  transform: translateZ(0);
 }
 
 .card:hover {
@@ -281,6 +283,8 @@ html.dark .recharts-layer .recharts-line-curve {
   padding: 24px;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .hatched {
@@ -430,7 +434,10 @@ html.dark .recharts-cartesian-grid line {
 }
 
 .ticker-content {
+  display: inline-flex;
   animation: ticker-scroll 30s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 .ticker-wrap:hover .ticker-content {
@@ -467,14 +474,20 @@ html:not(.dark) .particles-container {
   display: none;
 }
 
+html.dark .particles-container {
+  contain: strict;
+}
+
 .particle {
   position: fixed;
   background: #F97316;
   border-radius: 50%;
   opacity: 0;
-  animation: float-up 8s linear infinite;
+  animation: float-up 15s linear infinite;
   pointer-events: none;
   bottom: 0;
+  will-change: transform, opacity;
+  transform: translateZ(0);
 }
 
 /* ── Nav Micro-Interactions ── */
@@ -509,6 +522,18 @@ tbody tr:hover {
 }
 
 /* ── Badge hover pulse ── */
+/* ── Badge hover pulse ── */
 .badge:hover {
   animation: heartbeat 1s ease-in-out 1;
+}
+
+/* ── Premium Gradient Text & Hover (Dark Mode) ── */
+html.dark .treasury-value {
+  background: linear-gradient(135deg, #F97316, #FBBF24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html.dark .card:hover {
+  border-image: linear-gradient(135deg, rgba(249, 115, 22, 0.3), transparent) 1;
 }

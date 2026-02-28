@@ -1,7 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { Signal, SignalZero, Sun, Moon, Fuel } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 
 const PAGE_TITLES = {
@@ -13,7 +13,7 @@ const PAGE_TITLES = {
     '/architecture': 'Architecture',
 }
 
-export default function TopBar({ isDemo, connected, isDark, onToggleDark }) {
+export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleDark }) {
     const { pathname } = useLocation()
     const title = PAGE_TITLES[pathname] || 'ArcTreasury'
     const [wallet, setWallet] = useState(null)
@@ -79,4 +79,4 @@ export default function TopBar({ isDemo, connected, isDark, onToggleDark }) {
             </div>
         </header>
     )
-}
+})
