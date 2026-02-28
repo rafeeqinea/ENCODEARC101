@@ -14,7 +14,7 @@ const NAV_ITEMS = [
     { to: '/architecture', icon: Boxes, label: 'Architecture' },
 ]
 
-export default React.memo(function Sidebar({ agentStatus, isDemo }) {
+export default function Sidebar({ agentStatus, isDemo }) {
     const location = useLocation()
     const [wallet, setWallet] = useState(null)
 
@@ -52,29 +52,34 @@ export default React.memo(function Sidebar({ agentStatus, isDemo }) {
 
             {/* Navigation with animated indicator */}
             <nav className="flex-1 px-3 py-3">
-                {NAV_ITEMS.map(({ to, icon: Icon, label }) => {
-                    const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)
-                    return (
-                        <NavLink
-                            key={to}
-                            to={to}
-                            className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 text-[0.8125rem] font-medium transition-all duration-150 nav-item ${isActive
+                {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+                    <NavLink
+                        key={to}
+                        to={to}
+                        end={to === '/'}
+                        className={({ isActive }) =>
+                            `relative flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 text-[0.8125rem] font-medium transition-all duration-150 nav-item ${isActive
                                 ? 'sidebar-active bg-[var(--color-bg-secondary)] text-[var(--color-accent)]'
                                 : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]'
-                                }`}
-                        >
-                            {isActive && (
-                                <motion.div
-                                    layoutId="sidebar-indicator"
-                                    className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-[var(--color-accent)]"
-                                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                                />
-                            )}
-                            <Icon className="w-[18px] h-[18px] nav-icon" />
-                            {label}
-                        </NavLink>
-                    )
-                })}
+                            }`
+                        }
+                    >
+                        {({ isActive }) => (
+                            <>
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="sidebar-indicator"
+                                        className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-[var(--color-accent)]"
+                                        initial={false}
+                                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                                    />
+                                )}
+                                <Icon className="w-[18px] h-[18px] nav-icon" />
+                                {label}
+                            </>
+                        )}
+                    </NavLink>
+                ))}
             </nav>
 
             {/* Agent Status with Heartbeat */}
@@ -133,4 +138,4 @@ export default React.memo(function Sidebar({ agentStatus, isDemo }) {
             </div>
         </aside>
     )
-})
+}

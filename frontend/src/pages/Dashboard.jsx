@@ -9,11 +9,12 @@ import { formatCurrency, formatDate, formatApy } from '../lib/formatters'
 import { useCountUp } from '../hooks/useCountUp'
 
 export default function Dashboard() {
-    const { balances, decisions, yieldData, obligations } = useOutletContext()
-    const bal = balances.data || {}
-    const decs = (decisions.data || []).slice(0, 5)
-    const yld = yieldData.data || {}
-    const obls = (obligations.data || []).slice(0, 3)
+    const { balances, decisions, yieldData, obligations, risk, forecast } = useOutletContext()
+    const bal = balances?.data || {}
+    const decs = (decisions?.data || []).slice(0, 4) // Show 4 instead of 5
+    const yld = yieldData?.data || {}
+    const obls = (obligations?.data || []).slice(0, 3)
+    const riskData = risk?.data || { score: 0, level: 'none', factors: [], var: {} }
 
     // Animated values
     const animatedUsdc = useCountUp(bal.usdc || 0)
@@ -42,25 +43,37 @@ export default function Dashboard() {
                 <HatchedAccent className="flex-1 mt-4" height="4px" />
             </div>
 
-            {/* Two columns */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                {/* Recent decisions */}
-                <div className="lg:col-span-3 card-flat">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-heading text-base font-semibold">Recent Decisions</h3>
-                        <Link to="/agent" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
-                            View all <ArrowRight className="w-3 h-3" />
-                        </Link>
-                    </div>
-                    <div className="divide-y divide-[var(--color-border-light)]">
-                        {decs.map((d, i) => (
-                            <DecisionItem key={d.id} decision={d} index={i} compact />
-                        ))}
+            {/* Grid layout for major cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Risk Score */}
+                <div className="card-flat flex flex-col">
+                    <h3 className="font-heading text-base font-semibold mb-4 text-[var(--color-text-primary)]">Risk Score</h3>
+                    <div className="flex-1 flex flex-col items-center justify-center">
+                        <div className="relative w-28 h-28 flex items-center justify-center rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] mb-4">
+                            <span className="text-3xl font-bold font-mono" style={{ color: riskData.score < 30 ? 'var(--color-success)' : riskData.score < 60 ? 'var(--color-warning)' : 'var(--color-danger)' }}>
+                                {riskData.score}
+                            </span>
+                        </div>
+                        <p className={`text-xs font-semibold uppercase tracking-wider mb-4 px-3 py-1 rounded-full ${riskData.level === 'low' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : riskData.level === 'high' ? 'bg-[var(--color-danger)]/10 text-[var(--color-danger)]' : 'bg-[var(--color-warning)]/10 text-[var(--color-warning)]'}`}>
+                            {riskData.level} Risk
+                        </p>
+                        <ul className="w-full space-y-2 mb-4">
+                            {riskData.factors.map((f, i) => (
+                                <li key={i} className="text-[0.7rem] text-[var(--color-text-secondary)] flex items-start gap-1.5">
+                                    <span className="text-[var(--color-danger)] mt-0.5">•</span>
+                                    {f}
+                                </li>
+                            ))}
+                        </ul>
+                        <div className="mt-auto w-full pt-3 border-t border-[var(--color-border-light)] flex justify-between items-center px-1">
+                            <span className="text-[0.7rem] text-[var(--color-text-muted)]">VaR (95%)</span>
+                            <span className="font-mono text-sm font-semibold">{formatCurrency(riskData.var?.var_95 || 0)}</span>
+                        </div>
                     </div>
                 </div>
 
                 {/* Yield performance mini chart */}
-                <div className="lg:col-span-2 card-flat">
+                <div className="card-flat flex flex-col">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="font-heading text-base font-semibold">Yield Performance</h3>
                         <Link to="/yield" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
@@ -93,35 +106,53 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Upcoming obligations */}
-            <div className="card-flat">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-heading text-base font-semibold">Upcoming Obligations</h3>
-                    <Link to="/obligations" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
-                        Manage <ArrowRight className="w-3 h-3" />
-                    </Link>
+            {/* Recent decisions & Obligations row */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                {/* Recent decisions */}
+                <div className="lg:col-span-2 card-flat">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-heading text-base font-semibold">Recent Decisions</h3>
+                        <Link to="/agent" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
+                            View all <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </div>
+                    <div className="divide-y divide-[var(--color-border-light)]">
+                        {decs.map((d, i) => (
+                            <DecisionItem key={d.id} decision={d} index={i} compact />
+                        ))}
+                    </div>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-[var(--color-border)]">
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Recipient</th>
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Amount</th>
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Due</th>
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {obls.map((o) => (
-                                <tr key={o.id} className="border-b border-[var(--color-border-light)]">
-                                    <td className="py-2.5 px-3 text-sm">{o.recipient}</td>
-                                    <td className="py-2.5 px-3 text-sm font-mono">{formatCurrency(o.amount)} {o.currency}</td>
-                                    <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)]">{formatDate(o.due_date)}</td>
-                                    <td className="py-2.5 px-3"><StatusBadge status={o.status} /></td>
+
+                {/* Upcoming obligations */}
+                <div className="lg:col-span-3 card-flat">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-heading text-base font-semibold">Upcoming Obligations</h3>
+                        <Link to="/obligations" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
+                            Manage <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-[var(--color-border)]">
+                                    <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Recipient</th>
+                                    <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Amount</th>
+                                    <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Due</th>
+                                    <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {obls.map((o) => (
+                                    <tr key={o.id} className="border-b border-[var(--color-border-light)]">
+                                        <td className="py-2.5 px-3 text-sm">{o.recipient}</td>
+                                        <td className="py-2.5 px-3 text-sm font-mono">{formatCurrency(o.amount)} {o.currency}</td>
+                                        <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)]">{formatDate(o.due_date)}</td>
+                                        <td className="py-2.5 px-3"><StatusBadge status={o.status} /></td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

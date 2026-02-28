@@ -28,10 +28,27 @@ class TreasuryStrategy:
         fx_price: OraclePrice,
         yield_info: YieldInfo,
         obligations: List[Obligation],
+        prediction: dict = None,
     ) -> List[Action]:
         actions: List[Action] = []
         bal_map = {b.token: b.amount for b in balances}
         usdc_balance = bal_map.get("USDC", 0)
+
+        # ML-enhanced: If forecaster says swap now with high confidence
+        if prediction and prediction.get("direction") == "down" and prediction.get("confidence", 0) > 0.65:
+            change_pct = prediction.get("change_pct", 0)
+            if abs(change_pct) > 0.1 and usdc_balance > 5000:
+                amount = min(usdc_balance * 0.2, 50000)
+                actions.append(
+                    Action(
+                        type=ActionType.SWAP,
+                        token="USDC",
+                        amount=amount,
+                        reason=f"ML Forecaster: EURC strengthening ({abs(change_pct):.2f}%) — strategic swap",
+                    )
+                )
+                logger.info("Decision: ML swap %s USDC to EURC", amount)
+                return actions
 
         # Rule 1: idle USDC surplus and no upcoming payments -> deposit to USYC
         if usdc_balance > self.usdc_threshold and not self._upcoming_payment(obligations):

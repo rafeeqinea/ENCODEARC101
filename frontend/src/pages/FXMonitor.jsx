@@ -15,6 +15,9 @@ export default function FXMonitor() {
     const fx = fxData.data || {}
     const history = fx.history || []
     const swaps = fx.swaps || []
+    const forecast = context.forecast?.data || {}
+    const prediction = forecast.prediction || {}
+    const recommendation = forecast.recommendation || {}
     const [range, setRange] = useState('24H')
 
     // StableFX quote state
@@ -84,7 +87,7 @@ export default function FXMonitor() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <StatCard
                     label="USDC / EURC Rate"
                     value={animatedRate}
@@ -101,19 +104,6 @@ export default function FXMonitor() {
                     color={isDown ? 'var(--color-danger)' : 'var(--color-success)'}
                     delay={0.05}
                 />
-                <div className="card flex items-center gap-4">
-                    <div>
-                        <p className="text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider mb-1">AI Forecast</p>
-                        <p className="font-heading text-lg font-bold text-[var(--color-text-primary)] capitalize">{fx.forecast_direction || '—'}</p>
-                    </div>
-                    <div className="ml-auto">
-                        {fx.forecast_direction === 'down' ? (
-                            <TrendingDown className="w-8 h-8 text-[var(--color-danger)] opacity-40" />
-                        ) : (
-                            <TrendingUp className="w-8 h-8 text-[var(--color-success)] opacity-40" />
-                        )}
-                    </div>
-                </div>
             </div>
 
             <HatchedAccent height="3px" />
@@ -274,6 +264,59 @@ export default function FXMonitor() {
                     )}
                 </div>
                 <p className="text-[0.6rem] text-[var(--color-text-muted)] mt-2 text-right">Powered by Circle StableFX</p>
+            </div>
+
+            {/* AI Forecast Card */}
+            <div className="card-flat bg-gradient-to-br from-[var(--color-bg-secondary)] to-[rgba(249,115,22,0.05)] border-[var(--color-border)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <TrendingUp className="w-32 h-32" />
+                </div>
+                <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-heading text-base font-semibold">AI Rate Forecast</h3>
+                            <span className="badge badge-info text-[0.6rem]">Powered by Linear Regression</span>
+                        </div>
+                        <span className={`px-2 py-1 rounded-md text-[0.65rem] font-bold uppercase tracking-wider ${recommendation.action === 'SWAP_NOW' ? 'bg-[var(--color-danger)]/20 text-[var(--color-danger)]' :
+                                recommendation.action === 'WAIT' ? 'bg-[var(--color-warning)]/20 text-[var(--color-warning)]' :
+                                    'bg-[var(--color-success)]/20 text-[var(--color-success)]'
+                            }`}>
+                            {recommendation.action || 'HOLD'}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <p className="text-[0.65rem] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Direction</p>
+                            <div className="flex items-center gap-2">
+                                {prediction.direction === 'up' ? <TrendingUp className="w-5 h-5 text-[var(--color-success)]" /> :
+                                    prediction.direction === 'down' ? <TrendingDown className="w-5 h-5 text-[var(--color-danger)]" /> :
+                                        <ArrowLeftRight className="w-5 h-5 text-[var(--color-text-muted)]" />}
+                                <span className="font-semibold capitalize">{prediction.direction || 'Stable'}</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-[0.65rem] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Predicted Rate (6h)</p>
+                            <p className="font-mono text-lg font-bold">{prediction.predicted_rate ? prediction.predicted_rate.toFixed(4) : '—'}</p>
+                        </div>
+                        <div>
+                            <p className="text-[0.65rem] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Confidence</p>
+                            <div className="flex items-center gap-2 h-7">
+                                <div className="flex-1 h-1.5 bg-[var(--color-border-light)] rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-[var(--color-accent)]"
+                                        style={{ width: `${(prediction.confidence || 0) * 100}%` }}
+                                    />
+                                </div>
+                                <span className="text-xs font-mono">{prediction.confidence ? (prediction.confidence * 100).toFixed(1) : 0}%</span>
+                            </div>
+                        </div>
+                        <div>
+                            <p className="text-[0.65rem] text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Model Accuracy (R²)</p>
+                            <p className="font-mono text-sm">{prediction.r_squared ? prediction.r_squared.toFixed(3) : '—'}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Swap history */}

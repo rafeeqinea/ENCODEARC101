@@ -16,6 +16,10 @@ from .stablefx import StableFXClient
 from .models import Balance, Action, AgentDecision, Obligation
 from .agent_loop import AgentLoop
 from .seed_data import generate_all_seed_data
+from .forecaster import FXForecaster
+from .risk import RiskAssessor
+import random
+from datetime import timedelta
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -38,6 +42,18 @@ strategy: Optional[TreasuryStrategy] = None
 agent_loop: Optional[AgentLoop] = None
 stablefx_client: Optional[StableFXClient] = None
 blockchain_available: bool = False
+
+forecaster = FXForecaster()
+risk_assessor = RiskAssessor()
+
+# Seed forecaster with data
+base_rate = 0.9215
+for i in range(24):
+    t = datetime.utcnow() - timedelta(hours=24-i)
+    r = base_rate + random.uniform(-0.005, 0.005)
+    forecaster.add_rate(t, r)
+    risk_assessor.update(r)
+forecaster.train()
 
 # ── In-memory stores ────────────────────────────────────────────────────────
 obligations_store: List[Dict[str, Any]] = []
@@ -122,6 +138,7 @@ async def startup_event() -> None:
             obligations_store=[],
             decision_history=[],
             broadcast_callback=broadcast_decision,
+            forecaster=forecaster,
         )
         asyncio.create_task(agent_loop.run())
         logger.info("Agent loop started")
@@ -187,6 +204,38 @@ async def api_balances() -> Dict[str, Any]:
         except Exception as exc:
             logger.warning("get_balances failed, using seed: %s", exc)
     return {**seed_balances, "source": "seed"}
+
+
+@app.get("/api/forecast")
+async def api_forecast():
+    """Return AI rate forecast and recommendation."""
+    prediction = forecaster.predict(steps_ahead=6)
+    recommendation = forecaster.get_recommendation(prediction)
+    return {
+        "prediction": prediction,
+        "recommendation": recommendation
+    }
+
+
+@app.get("/api/risk")
+async def api_risk():
+    """Return current treasury risk metrics."""
+    try:
+        if arc_client and blockchain_available:
+            raw = await arc_client.get_balances()
+            balances = {
+                "usdc": raw["USDC"] / 1e18,
+                "eurc": raw["EURC"] / 1e18,
+                "usyc": raw["USYC"] / 1e18,
+            }
+        else:
+            balances = {"usdc": 247500.0, "eurc": 85200.0, "usyc": 150000.0}
+    except Exception:
+        balances = {"usdc": 247500.0, "eurc": 85200.0, "usyc": 150000.0}
+    
+    fx_rate = forecaster.rate_history[-1][1] if forecaster.rate_history else 0.9215
+    risk = risk_assessor.assess_treasury_risk(balances, fx_rate)
+    return risk
 
 
 @app.get("/api/agent")

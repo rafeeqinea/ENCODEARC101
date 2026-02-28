@@ -10,6 +10,8 @@ export function useTreasury() {
     const obligations = useApi(api.getObligations, { interval: 15000, fallback: MOCK.obligations })
     const yieldData = useApi(api.getYield, { interval: 30000, fallback: MOCK.yield })
     const fxData = useApi(api.getFx, { interval: 10000, fallback: MOCK.fx })
+    const forecast = useApi(api.getForecast, { interval: 30000 })
+    const risk = useApi(api.getRisk, { interval: 30000 })
 
     const isDemo = useMemo(
         () => balances.isDemo || agent.isDemo,
@@ -24,5 +26,5 @@ export function useTreasury() {
         } catch { /* ignore in demo */ }
     }, [decisions, balances])
 
-    return { balances, agent, decisions, obligations, yieldData, fxData, isDemo, triggerRun }
+    return { balances, agent, decisions, obligations, yieldData, fxData, forecast, risk, isDemo, triggerRun }
 }

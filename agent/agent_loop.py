@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import List, Callable, Awaitable, Optional
+from typing import List, Callable, Awaitable, Optional, Any
 
 from .blockchain import ArcClient
 from .oracle import StorkOracle
@@ -23,11 +23,16 @@ class AgentLoop:
         decision_history: List[AgentDecision],
         broadcast_callback: Optional[Callable[[AgentDecision], Awaitable[None]]] = None,
         interval_seconds: int = 30,
+        forecaster: Optional[Any] = None,
     ) -> None:
         self.arc = arc_client
         self.oracle = oracle
         self.strategy = strategy
         self.obligations = obligations_store
+        self.history = decision_history
+        self.broadcast_callback = broadcast_callback
+        self.interval = interval_seconds
+        self.forecaster = forecaster
         self.history = decision_history
         self.broadcast_callback = broadcast_callback
         self.interval = interval_seconds
@@ -59,12 +64,20 @@ class AgentLoop:
             else:
                 yield_info = yield_data
 
+            # Update forecaster and predict
+            prediction = None
+            if self.forecaster:
+                self.forecaster.add_rate(datetime.utcnow(), oracle_price.rate)
+                self.forecaster.train()
+                prediction = self.forecaster.predict()
+
             # 3. decide actions
             actions: List[Action] = self.strategy.decide(
                 balances=balances,
                 fx_price=oracle_price,
                 yield_info=yield_info,
                 obligations=self.obligations,
+                prediction=prediction,
             )
 
             # 4. execute actions
