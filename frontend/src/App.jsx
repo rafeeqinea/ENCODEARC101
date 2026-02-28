@@ -11,6 +11,10 @@ const FXMonitor = lazy(() => import('./pages/FXMonitor'))
 const Yield = lazy(() => import('./pages/Yield'))
 const Obligations = lazy(() => import('./pages/Obligations'))
 const Architecture = lazy(() => import('./pages/Architecture'))
+const Contracts = lazy(() => import('./pages/Contracts'))
+const CrossChain = lazy(() => import('./pages/CrossChain'))
+const Nanopayments = lazy(() => import('./pages/Nanopayments'))
+const SettingsPage = lazy(() => import('./pages/Settings'))
 const Landing = lazy(() => import('./pages/Landing'))
 
 export default function App() {
@@ -54,7 +58,11 @@ export default function App() {
                   <Route path="fx" element={<FXMonitor />} />
                   <Route path="yield" element={<Yield />} />
                   <Route path="obligations" element={<Obligations />} />
+                  <Route path="contracts" element={<Contracts />} />
+                  <Route path="crosschain" element={<CrossChain />} />
+                  <Route path="nanopayments" element={<Nanopayments />} />
                   <Route path="architecture" element={<Architecture />} />
+                  <Route path="settings" element={<SettingsPage />} />
                 </Route>
               </Routes>
             </Suspense>

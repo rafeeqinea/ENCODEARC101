@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Bot, ArrowLeftRight, TrendingUp, ClipboardList, Boxes, Zap, Fuel, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Bot, ArrowLeftRight, TrendingUp, ClipboardList, Boxes, FileCode2, Globe, Banknote, Zap, Fuel, Settings, LogOut } from 'lucide-react'
 import { motion } from 'framer-motion'
 import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
@@ -11,6 +11,9 @@ const NAV_ITEMS = [
     { to: '/dashboard/fx', icon: ArrowLeftRight, label: 'FX Monitor' },
     { to: '/dashboard/yield', icon: TrendingUp, label: 'Yield' },
     { to: '/dashboard/obligations', icon: ClipboardList, label: 'Obligations' },
+    { to: '/dashboard/contracts', icon: FileCode2, label: 'Contracts' },
+    { to: '/dashboard/crosschain', icon: Globe, label: 'Cross-Chain' },
+    { to: '/dashboard/nanopayments', icon: Banknote, label: 'Nanopayments' },
     { to: '/dashboard/architecture', icon: Boxes, label: 'Architecture' },
 ]
 
@@ -134,7 +137,7 @@ export default function Sidebar({ agentStatus, isDemo }) {
             <div className="px-3 py-2 space-y-0.5">
                 <button
                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[0.8125rem] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-all duration-150"
-                    onClick={() => {}}
+                    onClick={() => navigate('/dashboard/settings')}
                 >
                     <Settings className="w-[18px] h-[18px]" />
                     Settings
