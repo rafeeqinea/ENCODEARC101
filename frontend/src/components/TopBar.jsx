@@ -17,8 +17,11 @@ export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleD
     const { pathname } = useLocation()
     const title = PAGE_TITLES[pathname] || 'ArcTreasury'
     const [wallet, setWallet] = useState(null)
+    const [connectedWallet, setConnectedWallet] = useState(null)
 
     useEffect(() => {
+        setConnectedWallet(sessionStorage.getItem('arc-wallet'))
+
         async function fetchWallet() {
             try {
                 const data = await api.getWallet()
@@ -53,10 +56,16 @@ export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleD
                     </span>
                 )}
 
-                <span className={`flex items-center gap-1.5 text-[0.7rem] ${connected && !isDemo ? 'text-[var(--color-success)] live-glow' : isDemo ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'}`}>
-                    <Signal className="w-3.5 h-3.5" />
-                    {connected && !isDemo ? 'Live' : isDemo ? 'Demo' : 'Offline'}
-                </span>
+                {/* Wallet Connection Pill */}
+                {connectedWallet && (
+                    <div className="flex items-center gap-2 px-3 py-1 bg-[var(--color-bg)] rounded-full border border-[var(--color-border)] shadow-inner">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-xs font-mono font-semibold text-[var(--color-text-secondary)]">
+                            {connectedWallet}
+                        </span>
+                    </div>
+                )}
+
                 {/* Dark mode toggle */}
                 <button
                     onClick={onToggleDark}

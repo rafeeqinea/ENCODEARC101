@@ -11,6 +11,7 @@ const FXMonitor = lazy(() => import('./pages/FXMonitor'))
 const Yield = lazy(() => import('./pages/Yield'))
 const Obligations = lazy(() => import('./pages/Obligations'))
 const Architecture = lazy(() => import('./pages/Architecture'))
+const Landing = lazy(() => import('./pages/Landing'))
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem('arc-loaded'))
@@ -46,7 +47,8 @@ export default function App() {
               </div>
             }>
               <Routes>
-                <Route element={<DashboardLayout />}>
+                <Route path="/" element={<Landing />} />
+                <Route path="/dashboard" element={<DashboardLayout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="agent" element={<Agent />} />
                   <Route path="fx" element={<FXMonitor />} />
