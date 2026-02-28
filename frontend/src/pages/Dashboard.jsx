@@ -27,9 +27,15 @@ export default function Dashboard() {
         <div className="max-w-[1200px] mx-auto space-y-6">
             {/* Hero stat cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatCard label="USDC Balance" value={formatCurrency(animatedUsdc)} icon={DollarSign} delay={0} />
-                <StatCard label="EURC Balance" value={formatCurrency(animatedEurc, 2, 'EUR')} icon={Euro} delay={0.05} />
-                <StatCard label="USYC Balance" value={formatCurrency(animatedUsyc)} icon={Landmark} color="var(--color-success)" delay={0.1} />
+                <Link to="/agent" className="block hover:-translate-y-1 transition-transform duration-300">
+                    <StatCard label="USDC Balance" value={formatCurrency(animatedUsdc)} icon={DollarSign} delay={0} />
+                </Link>
+                <Link to="/fx" className="block hover:-translate-y-1 transition-transform duration-300">
+                    <StatCard label="EURC Balance" value={formatCurrency(animatedEurc, 2, 'EUR')} icon={Euro} delay={0.05} />
+                </Link>
+                <Link to="/yield" className="block hover:-translate-y-1 transition-transform duration-300">
+                    <StatCard label="USYC Balance" value={formatCurrency(animatedUsyc)} icon={Landmark} color="var(--color-success)" delay={0.1} />
+                </Link>
             </div>
 
             {/* Total value with hatched accent */}

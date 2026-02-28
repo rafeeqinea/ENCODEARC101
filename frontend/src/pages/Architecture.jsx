@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import { ExternalLink, ShieldCheck, Database, Zap, Globe } from 'lucide-react'
 
 const TECH_STACK = [
     { name: 'Solidity', desc: 'Smart Contracts on Arc' },
@@ -64,44 +66,49 @@ export default function Architecture() {
                 transition={{ duration: 0.4 }}
             >
                 {/* Inputs */}
-                <ArchBox>
-                    <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">Data Sources</p>
-                    <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Stork Oracle</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">FX rates, yield data</p>
-                    <div className="mt-3 border-t border-[var(--color-border-light)] pt-2">
-                        <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Obligations</p>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Payment schedule</p>
-                    </div>
-                </ArchBox>
+                <Link to="/fx" className="block outline-none hover:scale-[1.02] transition-transform duration-300">
+                    <ArchBox>
+                        <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">Data Sources</p>
+                        <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Stork Oracle</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">FX rates, yield data</p>
+                        <div className="mt-3 border-t border-[var(--color-border-light)] pt-2">
+                            <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">StableFX</p>
+                            <p className="text-xs text-[var(--color-text-secondary)]">USDC ↔ EURC Quotes</p>
+                        </div>
+                    </ArchBox>
+                </Link>
 
                 <Arrow />
 
                 {/* AI Agent (hero) */}
-                <ArchBox accent className="md:col-span-1">
-                    <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-accent)] font-semibold mb-2">AI Engine</p>
-                    <p className="text-base font-bold text-[var(--color-text-primary)] mb-2">Python Agent</p>
-                    <ul className="space-y-1">
-                        <li className="text-xs text-[var(--color-text-secondary)]">• FX Forecasting</li>
-                        <li className="text-xs text-[var(--color-text-secondary)]">• Risk Assessment</li>
-                        <li className="text-xs text-[var(--color-text-secondary)]">• Decision Engine</li>
-                        <li className="text-xs text-[var(--color-text-secondary)]">• Obligation Mgmt</li>
-                    </ul>
-                </ArchBox>
+                <Link to="/agent" className="block outline-none md:col-span-1 hover:scale-[1.02] transition-transform duration-300">
+                    <ArchBox accent>
+                        <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-accent)] font-semibold mb-2">AI Engine</p>
+                        <p className="text-base font-bold text-[var(--color-text-primary)] mb-2">Python Agent</p>
+                        <ul className="space-y-1">
+                            <li className="text-xs text-[var(--color-text-secondary)]">• FX Forecasting</li>
+                            <li className="text-xs text-[var(--color-text-secondary)]">• Risk Assessment</li>
+                            <li className="text-xs text-[var(--color-text-secondary)]">• Decision Engine</li>
+                            <li className="text-xs text-[var(--color-text-secondary)]">• Obligation Mgmt</li>
+                        </ul>
+                    </ArchBox>
+                </Link>
 
                 <Arrow />
 
                 {/* Treasury Vault */}
-                <ArchBox>
-                    <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">On-Chain</p>
-                    <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Treasury Vault</p>
-                    <p className="text-xs text-[var(--color-text-secondary)] mb-2">Solidity on Arc</p>
-                    <ul className="space-y-1">
-                        <li className="text-xs text-[var(--color-text-secondary)]">• USDC / EURC / USYC</li>
-                        <li className="text-xs text-[var(--color-text-secondary)]">• StableFX Swaps</li>
-                        <li className="text-xs text-[var(--color-text-secondary)]">• USYC Yield Vault</li>
-                        <li className="text-xs text-[var(--color-text-secondary)]">• Access Control</li>
-                    </ul>
-                </ArchBox>
+                <Link to="/yield" className="block outline-none hover:scale-[1.02] transition-transform duration-300">
+                    <ArchBox>
+                        <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">On-Chain</p>
+                        <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Treasury Vault</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] mb-2">Solidity on Arc</p>
+                        <ul className="space-y-1">
+                            <li className="text-xs text-[var(--color-text-secondary)]">• USDC / EURC</li>
+                            <li className="text-xs text-[var(--color-text-secondary)]">• USYC Yield Vault</li>
+                            <li className="text-xs text-[var(--color-text-secondary)]">• Access Control</li>
+                        </ul>
+                    </ArchBox>
+                </Link>
             </motion.div>
 
             {/* Dashboard connection */}
@@ -155,21 +162,90 @@ export default function Architecture() {
                 </div>
             </div>
 
-            {/* Circle integration */}
+            {/* Smart Contract Matrix */}
             <div className="card-flat">
-                <h3 className="font-heading text-lg font-semibold mb-3">Circle Integration Points</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <h3 className="font-heading text-lg font-semibold mb-4">Smart Contract Function Matrix</h3>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-[var(--color-border)]">
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Function</th>
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Access</th>
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Action</th>
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Security</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="border-b border-[var(--color-border-light)] hover:bg-[var(--color-bg-secondary)]">
+                                <td className="py-2.5 px-3 font-mono text-sm text-[var(--color-accent)]">executeStableFXSwap()</td>
+                                <td className="py-2.5 px-3"><span className="badge badge-info text-[0.6rem]">Agent Wallet</span></td>
+                                <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)]">Routes USDC to StableFX router for EURC</td>
+                                <td className="py-2.5 px-3"><ShieldCheck className="w-4 h-4 text-[var(--color-success)]" /></td>
+                            </tr>
+                            <tr className="border-b border-[var(--color-border-light)] hover:bg-[var(--color-bg-secondary)]">
+                                <td className="py-2.5 px-3 font-mono text-sm text-[var(--color-accent)]">depositYield()</td>
+                                <td className="py-2.5 px-3"><span className="badge badge-info text-[0.6rem]">Agent Wallet</span></td>
+                                <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)]">Moves idle USDC into USYC Vault</td>
+                                <td className="py-2.5 px-3"><ShieldCheck className="w-4 h-4 text-[var(--color-success)]" /></td>
+                            </tr>
+                            <tr className="border-b border-[var(--color-border-light)] hover:bg-[var(--color-bg-secondary)]">
+                                <td className="py-2.5 px-3 font-mono text-sm text-[var(--color-accent)]">withdrawYield()</td>
+                                <td className="py-2.5 px-3"><span className="badge badge-info text-[0.6rem]">Agent Wallet</span></td>
+                                <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)]">Redeems USYC for USDC to fund payouts</td>
+                                <td className="py-2.5 px-3"><ShieldCheck className="w-4 h-4 text-[var(--color-success)]" /></td>
+                            </tr>
+                            <tr className="border-b border-[var(--color-border-light)] hover:bg-[var(--color-bg-secondary)]">
+                                <td className="py-2.5 px-3 font-mono text-sm text-[var(--color-text-primary)]">setAgent()</td>
+                                <td className="py-2.5 px-3"><span className="px-2 py-0.5 rounded text-[0.6rem] font-bold bg-[var(--color-danger)]/20 text-[var(--color-danger)]">Owner</span></td>
+                                <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)]">Updates the authorized AI Agent address</td>
+                                <td className="py-2.5 px-3"><ShieldCheck className="w-4 h-4 text-[var(--color-success)]" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Circle integration + Roadmap */}
+            <div className="card-flat">
+                <h3 className="font-heading text-lg font-semibold mb-3">Circle Integration & Gateway Roadmap</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)]">
+                        <Database className="w-5 h-5 text-[var(--color-accent)] mb-2" />
                         <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">USYC (Hashnote)</p>
-                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">Tokenized US T-Bills providing institutional-grade yield on idle USDC. The agent autonomously parks surplus capital for 4.5% APY.</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">Agent autonomously parks surplus capital in tokenized T-Bills for 4.5% APY yield.</p>
                     </div>
                     <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)]">
+                        <Zap className="w-5 h-5 text-[var(--color-accent)] mb-2" />
                         <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">StableFX (Arc)</p>
-                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">On-chain USDC↔EURC swap router. The agent monitors FX rates and executes swaps at optimal times to pre-fund EURC obligations.</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">Agent monitors Stork constraints and executes USDC↔EURC swaps at optimal rates.</p>
                     </div>
                     <div className="p-4 rounded-xl bg-[var(--color-bg-secondary)]">
+                        <Globe className="w-5 h-5 text-[var(--color-accent)] mb-2" />
                         <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Circle Payments Network</p>
-                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">Global payout rail for cross-border payments. Obligations funded by the treasury can be settled instantly via CPN bridges.</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">Funded EUR/USD obligations settle instantly across borders using Circle CPN bridges.</p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-[var(--color-bg-secondary)] to-[rgba(249,115,22,0.1)] border border-[var(--color-accent)]/30">
+                        <ShieldCheck className="w-5 h-5 text-[var(--color-accent)] mb-2" />
+                        <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">CCTP Multi-chain (Upcoming)</p>
+                        <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">Future expansion uses Circle CCTP to autonomously rebalance liquidity across networks.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Contract Links */}
+            <div className="card-flat bg-[var(--color-bg-secondary)]">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h3 className="font-heading text-base font-semibold mb-1">Arc Testnet Contracts</h3>
+                        <p className="text-xs text-[var(--color-text-secondary)]">Verify the deployed proxy components on ArcScan</p>
+                    </div>
+                    <div className="flex gap-3">
+                        <a href="https://testnet.arcscan.app/" target="_blank" rel="noopener noreferrer" className="neon-btn flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors text-xs font-semibold">
+                            Vault Proxy <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                        <a href="https://testnet.arcscan.app/" target="_blank" rel="noopener noreferrer" className="neon-btn flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors text-xs font-semibold">
+                            StableFX <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
                     </div>
                 </div>
             </div>

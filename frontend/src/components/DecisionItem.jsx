@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, ArrowLeftRight, CreditCard, Minus } from 'lucide-react'
 import { formatCurrency, formatTimestamp, truncateHash } from '../lib/formatters'
+import { useNavigate } from 'react-router-dom'
 
 const ACTION_CONFIG = {
     YIELD_DEPOSIT: { icon: TrendingUp, color: 'var(--color-success)', label: 'Yield Deposit', glow: 'rgba(34,197,94,0.3)' },
@@ -13,13 +14,21 @@ const ACTION_CONFIG = {
 export default function DecisionItem({ decision, index = 0, compact = false }) {
     const config = ACTION_CONFIG[decision.action] || ACTION_CONFIG.HOLD
     const Icon = config.icon
+    const navigate = useNavigate()
+
+    const handleNavigate = () => {
+        if (decision.action === 'FX_SWAP') navigate('/fx')
+        else if (decision.action.includes('YIELD')) navigate('/yield')
+        else if (decision.action === 'PAYOUT') navigate('/obligations')
+    }
 
     return (
         <motion.div
-            className="flex items-start gap-3 p-3 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors"
+            className={`flex items-start gap-3 p-3 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors ${decision.action !== 'HOLD' ? 'cursor-pointer' : ''}`}
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.25, delay: index * 0.04 }}
+            onClick={decision.action !== 'HOLD' ? handleNavigate : undefined}
         >
             <div
                 className="glow-icon w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
@@ -42,7 +51,15 @@ export default function DecisionItem({ decision, index = 0, compact = false }) {
                     <div className="flex items-center gap-3 mt-1">
                         <span className="text-[0.65rem] text-[var(--color-text-muted)]">{formatTimestamp(decision.timestamp)}</span>
                         {decision.tx_hash && (
-                            <span className="font-mono text-[0.65rem] text-[var(--color-text-muted)]">{truncateHash(decision.tx_hash)}</span>
+                            <a
+                                href={`https://testnet.arcscan.app/tx/${decision.tx_hash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono text-[0.65rem] text-[var(--color-accent)] hover:underline flex items-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {truncateHash(decision.tx_hash)}
+                            </a>
                         )}
                     </div>
                 )}

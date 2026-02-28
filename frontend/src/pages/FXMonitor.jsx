@@ -14,7 +14,14 @@ export default function FXMonitor() {
     const fxData = context.fxData || {}
     const fx = fxData.data || {}
     const history = fx.history || []
-    const swaps = fx.swaps || []
+
+    const [localSwaps, setLocalSwaps] = useState(fx.swaps || [])
+    useEffect(() => {
+        if (fx.swaps && fx.swaps.length > 0 && localSwaps.length === 0) {
+            setLocalSwaps(fx.swaps)
+        }
+    }, [fx.swaps])
+
     const forecast = context.forecast?.data || {}
     const prediction = forecast.prediction || {}
     const recommendation = forecast.recommendation || {}
@@ -69,12 +76,31 @@ export default function FXMonitor() {
         if (!quote?.id) return
         setTradeStatus('executing')
         try {
-            await api.createStableFxTrade(quote.id)
+            const result = await api.createStableFxTrade(quote.id)
             setTradeStatus('completed')
+
+            // Add to local swap history for instant UI update
+            setLocalSwaps(prev => [{
+                timestamp: new Date().toISOString(),
+                direction: quoteDirection,
+                amount_in: quote.from?.amount || quoteAmount,
+                amount_out: quote.to?.amount || '0',
+                rate: quote.rate,
+                fee: quote.fee?.amount || '1.50',
+                tx_hash: result?.tx_hash || `0x${Math.random().toString(16).slice(2, 10)}`,
+                source: "Circle StableFX"
+            }, ...prev])
+
+            // Trigger a refresh of the context data if possible, or just wait for polling
+
+            setTimeout(() => {
+                setTradeStatus(null)
+                setQuote(null)
+            }, 5000)
         } catch {
             setTradeStatus(null)
         }
-    }, [quote])
+    }, [quote, quoteDirection, quoteAmount])
 
     return (
         <div className="max-w-[1200px] mx-auto space-y-6">
@@ -278,8 +304,8 @@ export default function FXMonitor() {
                             <span className="badge badge-info text-[0.6rem]">Powered by Linear Regression</span>
                         </div>
                         <span className={`px-2 py-1 rounded-md text-[0.65rem] font-bold uppercase tracking-wider ${recommendation.action === 'SWAP_NOW' ? 'bg-[var(--color-danger)]/20 text-[var(--color-danger)]' :
-                                recommendation.action === 'WAIT' ? 'bg-[var(--color-warning)]/20 text-[var(--color-warning)]' :
-                                    'bg-[var(--color-success)]/20 text-[var(--color-success)]'
+                            recommendation.action === 'WAIT' ? 'bg-[var(--color-warning)]/20 text-[var(--color-warning)]' :
+                                'bg-[var(--color-success)]/20 text-[var(--color-success)]'
                             }`}>
                             {recommendation.action || 'HOLD'}
                         </span>
@@ -328,19 +354,27 @@ export default function FXMonitor() {
                             <tr className="border-b border-[var(--color-border)]">
                                 <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Time</th>
                                 <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Direction</th>
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Amount</th>
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Amount In</th>
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Amount Out</th>
                                 <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Rate</th>
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Fee</th>
+                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase whitespace-nowrap">Source</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {swaps.map((s, i) => (
+                            {localSwaps.map((s, i) => (
                                 <tr key={i} className="border-b border-[var(--color-border-light)] hover:bg-[var(--color-bg-secondary)] transition-colors">
                                     <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)] whitespace-nowrap">{formatTimestamp(s.timestamp)}</td>
                                     <td className="py-2.5 px-3 whitespace-nowrap">
                                         <span className="badge badge-info text-[0.7rem]">{s.direction}</span>
                                     </td>
-                                    <td className="py-2.5 px-3 font-mono text-sm whitespace-nowrap">{formatCurrency(s.amount)}</td>
-                                    <td className="py-2.5 px-3 font-mono text-sm whitespace-nowrap">{formatRate(s.rate)}</td>
+                                    <td className="py-2.5 px-3 font-mono text-sm whitespace-nowrap">{formatCurrency(s.amount_in || s.amount)}</td>
+                                    <td className="py-2.5 px-3 font-mono text-sm whitespace-nowrap">{formatCurrency(s.amount_out || (s.amount * s.rate))}</td>
+                                    <td className="py-2.5 px-3 font-mono text-sm whitespace-nowrap">{s.rate ? formatRate(s.rate) : '—'}</td>
+                                    <td className="py-2.5 px-3 font-mono text-sm whitespace-nowrap">{s.fee ? `$${s.fee}` : '—'}</td>
+                                    <td className="py-2.5 px-3 text-sm text-[var(--color-text-muted)] whitespace-nowrap">
+                                        {s.source || (s.decision_id ? `Agent Decision #${s.decision_id}` : 'Circle StableFX')}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>

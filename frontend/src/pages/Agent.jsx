@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { Bot, Play, Clock, Zap } from 'lucide-react'
+import { Bot, Play, Clock, Zap, Loader2, Check, CheckCircle2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import StatCard from '../components/StatCard'
 import DecisionItem from '../components/DecisionItem'
 import { formatTimestamp } from '../lib/formatters'
@@ -14,7 +15,7 @@ export default function Agent() {
     const agentData = agent.data || {}
     const allDecisions = decisions.data || []
     const [filter, setFilter] = useState('All')
-    const [running, setRunning] = useState(false)
+    const [runState, setRunState] = useState('idle')
 
     // Animated
     const animatedDecisions = useCountUp(agentData.total_decisions || 0, 1500, 0)
@@ -25,9 +26,20 @@ export default function Agent() {
     }, [allDecisions, filter])
 
     const handleRun = async () => {
-        setRunning(true)
-        await triggerRun()
-        setTimeout(() => setRunning(false), 1500)
+        if (runState !== 'idle') return
+        setRunState('analyzing')
+
+        // Simulate analysis phase UX
+        await new Promise(r => setTimeout(r, 800))
+
+        setRunState('executing')
+        try {
+            await triggerRun()
+            setRunState('complete')
+            setTimeout(() => setRunState('idle'), 5000)
+        } catch {
+            setRunState('idle')
+        }
     }
 
     return (
@@ -58,17 +70,37 @@ export default function Agent() {
             </div>
 
             {/* Decision feed */}
-            <div className="card-flat">
+            <div className="card-flat relative">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-heading text-base font-semibold">Decision Feed</h3>
-                    <button
-                        onClick={handleRun}
-                        disabled={running}
-                        className="neon-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--color-accent)] text-white text-xs font-semibold hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-50"
-                    >
-                        <Play className="w-3 h-3" />
-                        {running ? 'Running…' : 'Run Cycle'}
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <AnimatePresence>
+                            {runState === 'complete' && allDecisions[0] && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]"
+                                >
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-[var(--color-success)]" />
+                                    <span className="text-[0.65rem] font-semibold text-[var(--color-text-primary)] uppercase tracking-wider">
+                                        Cycle Complete — {allDecisions[0].action}
+                                    </span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <button
+                            onClick={handleRun}
+                            disabled={runState !== 'idle'}
+                            className="neon-btn flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-accent)] text-white text-xs font-semibold hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-50 min-w-[120px] justify-center"
+                        >
+                            {runState === 'analyzing' && <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyzing…</>}
+                            {runState === 'executing' && <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Executing…</>}
+                            {runState === 'complete' && <><Check className="w-3.5 h-3.5" /> Complete</>}
+                            {runState === 'idle' && <><Play className="w-3.5 h-3.5" /> Run Cycle</>}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Filters */}
