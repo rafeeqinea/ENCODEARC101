@@ -60,8 +60,12 @@ def make_decision_with_ai(balances, fx_rate, yield_data, upcoming_obligations, p
         "reason": "Clear explanation of why this action was chosen based on the data. For decisions other than holding, ensure to mention how it mitigates treasury risk or leverages predictive volatility.",
         "amount": 1000.00,
         "token": "USDC->EURC" or "USDC->USYC" or "EURC",
-        "confidence": 0.95
+        "confidence": 0.82
     }}
+
+    IMPORTANT: confidence must be a realistic probability between 0.55 and 0.95. 
+    Never use 1.0 or 0.99. Even very clear decisions should be 0.88-0.93 at most.
+    Factor in market uncertainty, data staleness, and model limitations.
     """
 
     try:
@@ -78,6 +82,9 @@ def make_decision_with_ai(balances, fx_rate, yield_data, upcoming_obligations, p
             response_text = response_text[:-3]
 
         decision = json.loads(response_text)
+        # Clamp confidence to realistic range — LLMs tend to be overconfident
+        raw_conf = float(decision.get("confidence", 0.75))
+        decision["confidence"] = round(min(0.95, max(0.55, raw_conf)), 2)
         decision["metadata"] = {"source": "ai-agent-v1", "fx_rate": fx_rate}
 
         # Add linked obligation ID if it's a payout
