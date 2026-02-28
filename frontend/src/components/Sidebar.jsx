@@ -1,5 +1,5 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Bot, ArrowLeftRight, TrendingUp, ClipboardList, Boxes, Zap, Fuel } from 'lucide-react'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { LayoutDashboard, Bot, ArrowLeftRight, TrendingUp, ClipboardList, Boxes, Zap, Fuel, Settings, LogOut } from 'lucide-react'
 import { motion } from 'framer-motion'
 import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
 
 export default function Sidebar({ agentStatus, isDemo }) {
     const location = useLocation()
+    const navigate = useNavigate()
     const [wallet, setWallet] = useState(null)
 
     // Fetch wallet balance
@@ -126,6 +127,29 @@ export default function Sidebar({ agentStatus, isDemo }) {
             <div className="px-5 py-2.5">
                 <p className="text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-1">Arc Testnet</p>
                 <p className="text-[0.65rem] text-[var(--color-text-muted)] font-mono">Chain ID: 5042002</p>
+            </div>
+
+            {/* Settings & Sign Out */}
+            <div className="mx-5 border-t border-[var(--color-border-light)]" />
+            <div className="px-3 py-2 space-y-0.5">
+                <button
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[0.8125rem] font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-all duration-150"
+                    onClick={() => {}}
+                >
+                    <Settings className="w-[18px] h-[18px]" />
+                    Settings
+                </button>
+                <button
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[0.8125rem] font-medium text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 transition-all duration-150"
+                    onClick={() => {
+                        sessionStorage.removeItem('arc-wallet')
+                        sessionStorage.removeItem('arc-loaded')
+                        navigate('/')
+                    }}
+                >
+                    <LogOut className="w-[18px] h-[18px]" />
+                    Disconnect Wallet
+                </button>
             </div>
 
             {/* Footer */}

@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { Signal, SignalZero, Sun, Moon, Fuel } from 'lucide-react'
+import { Signal, SignalZero, Sun, Moon, Fuel, DollarSign } from 'lucide-react'
 import { motion } from 'framer-motion'
 import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
@@ -18,18 +18,20 @@ export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleD
     const title = PAGE_TITLES[pathname] || 'ArcTreasury'
     const [wallet, setWallet] = useState(null)
     const [connectedWallet, setConnectedWallet] = useState(null)
+    const [balances, setBalances] = useState(null)
 
     useEffect(() => {
         setConnectedWallet(sessionStorage.getItem('arc-wallet'))
 
-        async function fetchWallet() {
+        async function fetchData() {
             try {
-                const data = await api.getWallet()
-                setWallet(data)
+                const [walletData, balData] = await Promise.all([api.getWallet(), api.getBalances()])
+                setWallet(walletData)
+                setBalances(balData)
             } catch { /* ignore */ }
         }
-        fetchWallet()
-        const timer = setInterval(fetchWallet, 30000)
+        fetchData()
+        const timer = setInterval(fetchData, 10000)
         return () => clearInterval(timer)
     }, [])
 
@@ -45,6 +47,15 @@ export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleD
                     <span className="badge badge-warning text-[0.7rem] flex items-center gap-1">
                         <SignalZero className="w-3 h-3" />
                         Demo Mode
+                    </span>
+                )}
+
+                {/* Live Treasury Balance */}
+                {balances && (
+                    <span className="flex items-center gap-1.5 text-[0.65rem] font-mono font-medium px-2.5 py-1 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)]">
+                        <DollarSign className="w-3 h-3 text-[var(--color-accent)]" />
+                        {(balances.total_usd || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                        <span className="text-[var(--color-text-muted)]">TVL</span>
                     </span>
                 )}
 

@@ -76,7 +76,11 @@ export default function FXMonitor() {
         if (!quote?.id) return
         setTradeStatus('executing')
         try {
-            const result = await api.createStableFxTrade(quote.id)
+            const result = await api.createStableFxTrade(quote.id, {
+                amount: parseFloat(quoteAmount),
+                direction: quoteDirection,
+                rate: parseFloat(quote.rate) || 0.9215,
+            })
             setTradeStatus('completed')
 
             // Add to local swap history for instant UI update
@@ -91,7 +95,8 @@ export default function FXMonitor() {
                 source: "Circle StableFX"
             }, ...prev])
 
-            // Trigger a refresh of the context data if possible, or just wait for polling
+            // Refresh balances so dashboard updates
+            if (context.balances?.refresh) context.balances.refresh()
 
             setTimeout(() => {
                 setTradeStatus(null)
@@ -100,7 +105,7 @@ export default function FXMonitor() {
         } catch {
             setTradeStatus(null)
         }
-    }, [quote, quoteDirection, quoteAmount])
+    }, [quote, quoteDirection, quoteAmount, context.balances])
 
     return (
         <div className="max-w-[1200px] mx-auto space-y-6">

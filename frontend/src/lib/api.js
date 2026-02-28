@@ -30,8 +30,8 @@ export const api = {
     getStableFxRate: () => get('/api/stablefx/rate'),
     getStableFxQuote: (from, to, amount) =>
         get(`/api/stablefx/quote?from_currency=${from}&to_currency=${to}&amount=${amount}`),
-    createStableFxTrade: (quoteId) =>
-        post('/api/stablefx/trade', { quoteId }),
+    createStableFxTrade: (quoteId, { amount, direction, rate } = {}) =>
+        post('/api/stablefx/trade', { quoteId, amount, direction, rate }),
 
     // Wallet
     getWallet: () => get('/api/wallet'),

@@ -654,7 +654,22 @@ async def api_stablefx_quote(
 async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a trade on Circle StableFX."""
     if stablefx_client and "quoteId" in body:
-        return await stablefx_client.create_trade(body["quoteId"])
+        result = await stablefx_client.create_trade(body["quoteId"])
+        # Update seed balances to reflect the trade
+        amount = float(body.get("amount", 0))
+        direction = body.get("direction", "USDC→EURC")
+        rate = float(body.get("rate", 0.9215))
+        if amount > 0:
+            if "USDC→EURC" in direction or "USDC" in direction:
+                seed_balances["usdc"] = seed_balances.get("usdc", 0) - amount
+                seed_balances["eurc"] = seed_balances.get("eurc", 0) + round(amount * rate, 2)
+            elif "EURC→USDC" in direction:
+                seed_balances["eurc"] = seed_balances.get("eurc", 0) - amount
+                seed_balances["usdc"] = seed_balances.get("usdc", 0) + round(amount / rate, 2)
+            seed_balances["total_usd"] = round(
+                seed_balances.get("usdc", 0) + seed_balances.get("eurc", 0) / 0.92 + seed_balances.get("usyc", 0), 2
+            )
+        return result
     return {"error": "Missing quoteId or client not initialized"}
 
 
