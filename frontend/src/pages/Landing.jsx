@@ -104,7 +104,7 @@ export default function Landing() {
                     </h1>
 
                     <p className="text-lg text-[var(--color-text-muted)] max-w-md leading-relaxed">
-                        Connect your Arc wallet to unleash Gemini 1.5 Pro. Automate stablecoin yields, predict FX rates, and execute real-world payouts—all settled securely on-chain.
+                        Connect your Arc wallet to unleash an Advanced AI Agent. Automate stablecoin yields, predict FX rates, and execute real-world payouts—all settled securely on-chain.
                     </p>
 
                     <div className="pt-8">
@@ -148,7 +148,7 @@ export default function Landing() {
                         delay={0.2}
                         icon={ShieldAlert}
                         title="AI Decision Matrix"
-                        desc="Powered by Gemini 1.5 Pro. Analyzes Oracle data and balances to construct mathematically perfect trade payloads."
+                        desc="Powered by advanced Machine Learning Models. Analyzes Oracle data and balances to construct mathematically perfect trade payloads."
                     />
                     <FeatureCard
                         delay={0.3}

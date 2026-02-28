@@ -20,7 +20,7 @@ from .agent_loop import AgentLoop
 from .seed_data import generate_all_seed_data
 from .forecaster import FXForecaster
 from .risk import RiskAssessor
-from .gemini_agent import make_decision_with_gemini, API_KEY as GEMINI_ENABLED
+from .ai_agent import make_decision_with_ai, API_KEY as AI_ENABLED
 import random
 from datetime import timedelta
 
@@ -547,10 +547,14 @@ async def run_agent_cycle():
         prediction = forecaster.predict()
         recommendation = forecaster.get_recommendation(prediction)
         
+        # 5.5 Run Risk Assessment
+        risk_assessor.update(fx_rate)
+        risk_metrics = risk_assessor.assess_treasury_risk(balances, fx_rate)
+        
         # 6. Make decision based on ALL inputs
-        if GEMINI_ENABLED:
-            logger.info("Executing Agent Cycle via Gemini 1.5 Pro multimodal prompt.")
-            decision = make_decision_with_gemini(balances, fx_rate, yield_data, upcoming, prediction, recommendation)
+        if AI_ENABLED:
+            logger.info("Executing Agent Cycle via Advanced AI multimodal prompt.")
+            decision = make_decision_with_ai(balances, fx_rate, yield_data, upcoming, prediction, recommendation, risk_metrics)
         else:
             logger.info("Executing Agent Cycle via basic threshold math logic.")
             decision = make_decision(balances, fx_rate, yield_data, upcoming, prediction, recommendation)
