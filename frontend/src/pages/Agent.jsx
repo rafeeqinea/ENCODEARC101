@@ -6,6 +6,7 @@ import StatCard from '../components/StatCard'
 import DecisionItem from '../components/DecisionItem'
 import DecisionDetailModal from '../components/DecisionDetailModal'
 import { formatTimestamp } from '../lib/formatters'
+import { api } from '../lib/api'
 import { useCountUp } from '../hooks/useCountUp'
 
 const FILTERS = ['All', 'YIELD_DEPOSIT', 'YIELD_WITHDRAW', 'FX_SWAP', 'PAYOUT']
@@ -36,8 +37,13 @@ export default function Agent() {
 
         setRunState('executing')
         try {
-            await triggerRun()
+            const result = await api.triggerRun()
+            decisions.refresh()
             setRunState('complete')
+            // Auto-open the new decision in the detail modal
+            if (result?.decision) {
+                setSelectedDecision(result.decision)
+            }
             setTimeout(() => setRunState('idle'), 5000)
         } catch {
             setRunState('idle')
