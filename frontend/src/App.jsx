@@ -11,7 +11,6 @@ const FXMonitor = lazy(() => import('./pages/FXMonitor'))
 const Yield = lazy(() => import('./pages/Yield'))
 const Obligations = lazy(() => import('./pages/Obligations'))
 const Architecture = lazy(() => import('./pages/Architecture'))
-import SplashScreen from './components/SplashScreen'
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem('arc-loaded'))
