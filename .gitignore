@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Environment variables (NEVER commit private keys)
+.env
+agent/.env
+
+# Hardhat
+cache/
+artifacts/
+
+# Misc
+.DS_Store
+*.log

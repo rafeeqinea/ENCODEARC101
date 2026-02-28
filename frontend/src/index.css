@@ -1,0 +1,514 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #FFFBF5;
+  --color-bg-secondary: #FFF7ED;
+  --color-bg-dark: #1A1A1A;
+  --color-accent: #F97316;
+  --color-accent-hover: #EA580C;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-border: #E5E1DB;
+  --color-border-light: #F0ECE6;
+  --color-success: #16A34A;
+  --color-warning: #F59E0B;
+  --color-danger: #DC2626;
+  --color-info: #2563EB;
+
+  --font-heading: "Instrument Sans", system-ui, sans-serif;
+  --font-body: "Instrument Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap");
+
+/* Base styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode — premium liquid glass */
+html.dark {
+  --color-bg-primary: #050505;
+  --color-bg-secondary: rgba(30, 30, 30, 0.4);
+  --color-bg-dark: #000000;
+  --color-text-primary: #FAFAFA;
+  --color-text-secondary: #A1A1AA;
+  --color-text-muted: #71717A;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-light: rgba(255, 255, 255, 0.04);
+  --color-sidebar-bg: rgba(5, 5, 5, 0.65);
+  --color-sidebar-active: rgba(255, 255, 255, 0.06);
+  --color-card-shadow: rgba(0, 0, 0, 0.5);
+  --color-surface: rgba(20, 20, 20, 0.5);
+}
+
+/* Light mode defaults for new vars */
+html:not(.dark) {
+  --color-sidebar-bg: #FFFFFF;
+  --color-sidebar-active: #FFF7ED;
+  --color-card-shadow: rgba(26, 26, 26, 0.04);
+  --color-surface: #FFFFFF;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Hide scrollbar for clean internal scrolling */
+.hidden-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.hidden-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Dark mode badge overrides */
+html.dark .badge-success {
+  background: #166534;
+  color: #DCFCE7;
+}
+
+html.dark .badge-warning {
+  background: #92400E;
+  color: #FEF3C7;
+}
+
+html.dark .badge-danger {
+  background: #991B1B;
+  color: #FEE2E2;
+}
+
+html.dark .badge-info {
+  background: #1E40AF;
+  color: #DBEAFE;
+}
+
+html.dark .badge-neutral {
+  background: #374151;
+  color: #D1D5DB;
+}
+
+html.dark .badge-orange {
+  background: #431407;
+  color: #FDBA74;
+}
+
+/* Dark mode hatched patterns — reduced opacity */
+html.dark .hatched {
+  opacity: 0.10;
+}
+
+html.dark .hatched-subtle {
+  opacity: 0.05;
+}
+
+/* Dark mode card shadows + neon hover glow */
+html.dark .card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.25s, transform 0.2s, border-color 0.25s;
+}
+
+html.dark .card:hover {
+  border-color: rgba(249, 115, 22, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(249, 115, 22, 0.06);
+}
+
+html.dark .card-flat {
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+html.dark .card-flat:hover {
+  border-color: rgba(249, 115, 22, 0.12);
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.04);
+}
+
+/* ── Neon: Sidebar active item glow ── */
+html.dark .sidebar-active {
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.3);
+}
+
+/* ── Neon: Orange button hover glow ── */
+html.dark .neon-btn:hover {
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.25);
+}
+
+/* ── Neon: Sidebar logo icon glow ── */
+html.dark .neon-logo {
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.3);
+}
+
+/* ── Neon: Status dot glow ── */
+html.dark .pulse-live {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+/* ── Neon: Badge glows in dark mode ── */
+html.dark .badge-success {
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+html.dark .badge-danger {
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.3);
+}
+
+html.dark .badge-info {
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+}
+
+html.dark .badge-warning {
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.25);
+}
+
+html.dark .badge-orange {
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.25);
+}
+
+/* ── Neon: "Live" badge pulse glow ── */
+@keyframes neon-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 14px rgba(249, 115, 22, 0.2);
+  }
+}
+
+html.dark .live-glow {
+  animation: neon-pulse 2.5s ease-in-out infinite;
+}
+
+/* ── Neon: Page title text-shadow ── */
+html.dark .font-heading {
+  text-shadow: 0 0 30px rgba(249, 115, 22, 0.1);
+}
+
+/* ── Neon: Decision icon glow (uses --glow-color CSS var) ── */
+html.dark .glow-icon {
+  box-shadow: 0 0 8px var(--glow-color, transparent);
+  transition: box-shadow 0.2s;
+}
+
+/* ── Neon: Hatched pattern glow underlay ── */
+html.dark .hatched-glow {
+  position: relative;
+}
+
+html.dark .hatched-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, rgba(249, 115, 22, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Neon: Chart line glow ── */
+html.dark .recharts-layer .recharts-area-curve,
+html.dark .recharts-layer .recharts-line-curve {
+  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.4));
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Utility classes */
+.font-heading {
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.card {
+  background: var(--color-surface, var(--color-bg-primary));
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px var(--color-card-shadow, rgba(26, 26, 26, 0.04));
+  transition: box-shadow 0.2s, transform 0.2s;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.card:hover {
+  box-shadow: 0 8px 30px var(--color-card-shadow, rgba(26, 26, 26, 0.08));
+  transform: translateY(-2px);
+}
+
+.card-flat {
+  background: var(--color-surface, var(--color-bg-primary));
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.hatched {
+  background: repeating-linear-gradient(-45deg,
+      transparent,
+      transparent 4px,
+      #F97316 4px,
+      #F97316 5px);
+  opacity: 0.15;
+}
+
+.hatched-subtle {
+  background: repeating-linear-gradient(-45deg,
+      transparent,
+      transparent 6px,
+      #F97316 6px,
+      #F97316 7px);
+  opacity: 0.08;
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.badge-success {
+  background: #DCFCE7;
+  color: #166534;
+}
+
+.badge-warning {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-danger {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.badge-info {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.badge-neutral {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.badge-orange {
+  background: #FFF7ED;
+  color: #C2410C;
+}
+
+/* Pulse animation for live dot */
+@keyframes pulse-live {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.3);
+  }
+}
+
+.pulse-live {
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+/* Dark mode Recharts tooltip override */
+html.dark .recharts-default-tooltip {
+  background: #1A1A1A !important;
+  border-color: #2A2A2A !important;
+  color: #F5F5F5 !important;
+}
+
+html.dark .recharts-tooltip-label {
+  color: #9CA3AF !important;
+}
+
+html.dark .recharts-cartesian-grid line {
+  stroke: #2A2A2A;
+}
+
+/* ── Agent Heartbeat ── */
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.3);
+    opacity: 0.8;
+  }
+}
+
+@keyframes sonar-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.agent-heartbeat {
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+.agent-sonar {
+  border: 1px solid var(--color-success);
+  border-radius: 50%;
+  animation: sonar-ping 2s ease-out infinite;
+}
+
+/* ── Activity Ticker ── */
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-wrap {
+  mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+
+.ticker-content {
+  animation: ticker-scroll 30s linear infinite;
+}
+
+.ticker-wrap:hover .ticker-content {
+  animation-play-state: paused;
+}
+
+html.dark .ticker-text {
+  color: rgba(249, 115, 22, 0.5);
+  text-shadow: 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+/* ── Floating Particles (dark mode only) ── */
+@keyframes float-up {
+  0% {
+    transform: translateY(100vh) translateX(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.07;
+  }
+
+  90% {
+    opacity: 0.07;
+  }
+
+  100% {
+    transform: translateY(-10vh) translateX(var(--drift, 20px));
+    opacity: 0;
+  }
+}
+
+html:not(.dark) .particles-container {
+  display: none;
+}
+
+.particle {
+  position: fixed;
+  background: #F97316;
+  border-radius: 50%;
+  opacity: 0;
+  animation: float-up 8s linear infinite;
+  pointer-events: none;
+  bottom: 0;
+}
+
+/* ── Nav Micro-Interactions ── */
+.nav-item .nav-icon {
+  transition: transform 0.2s ease;
+}
+
+.nav-item:hover .nav-icon {
+  transform: rotate(5deg);
+}
+
+/* ── Button Press ── */
+.btn-press {
+  transition: transform 0.1s ease;
+}
+
+.btn-press:hover {
+  transform: scale(1.02);
+}
+
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* ── Table row hover ── */
+tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+tbody tr:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+/* ── Badge hover pulse ── */
+.badge:hover {
+  animation: heartbeat 1s ease-in-out 1;
+}
