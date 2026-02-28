@@ -60,6 +60,8 @@ def generate_decisions(count: int = 47) -> List[Dict[str, Any]]:
         reason_templates = reasons[action_type]
         reason = reason_templates[i % len(reason_templates)].format(amount=amount)
         ts = now - timedelta(hours=24 * (count - i) / count)
+        fx = round(random.uniform(0.9150, 0.9260), 4)
+        risk_score = random.randint(5, 45)
         decisions.append({
             "id": f"dec_{i + 1:03d}",
             "action": action_type,
@@ -69,6 +71,14 @@ def generate_decisions(count: int = 47) -> List[Dict[str, Any]]:
             "timestamp": ts.isoformat() + "Z",
             "tx_hash": _tx_hash(f"dec_{i}"),
             "confidence": round(random.uniform(0.72, 0.97), 2),
+            "snapshot": {
+                "balances": {"usdc": round(random.uniform(180000, 280000), 2), "eurc": round(random.uniform(60000, 100000), 2), "usyc": round(random.uniform(120000, 180000), 2)},
+                "fx_rate": fx,
+                "forecast": {"direction": random.choice(["up", "down", "stable"]), "confidence": round(random.uniform(0.5, 0.95), 3), "predicted_rate": round(fx + random.uniform(-0.005, 0.005), 6), "current_rate": fx, "change_pct": round(random.uniform(-0.5, 0.5), 4), "method": "linear_regression"},
+                "recommendation": {"action": random.choice(["SWAP_NOW", "WAIT", "HOLD"]), "reason": "ML-based recommendation", "urgency": random.choice(["high", "medium", "low"])},
+                "risk": {"score": risk_score, "level": "low" if risk_score < 20 else "moderate", "factors": [], "var": {"var_95": round(random.uniform(400, 1200), 2), "volatility": round(random.uniform(0.1, 0.8), 4)}},
+                "balance_source": "seed",
+            },
         })
     return decisions
 

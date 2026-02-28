@@ -66,7 +66,7 @@ export default function Architecture() {
                 transition={{ duration: 0.4 }}
             >
                 {/* Inputs */}
-                <Link to="/fx" className="block outline-none hover:scale-[1.02] transition-transform duration-300">
+                <Link to="/dashboard/fx" className="block outline-none hover:scale-[1.02] transition-transform duration-300">
                     <ArchBox>
                         <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">Data Sources</p>
                         <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Stork Oracle</p>
@@ -81,7 +81,7 @@ export default function Architecture() {
                 <Arrow />
 
                 {/* AI Agent (hero) */}
-                <Link to="/agent" className="block outline-none md:col-span-1 hover:scale-[1.02] transition-transform duration-300">
+                <Link to="/dashboard/agent" className="block outline-none md:col-span-1 hover:scale-[1.02] transition-transform duration-300">
                     <ArchBox accent>
                         <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-accent)] font-semibold mb-2">AI Engine</p>
                         <p className="text-base font-bold text-[var(--color-text-primary)] mb-2">Python Agent</p>
@@ -97,7 +97,7 @@ export default function Architecture() {
                 <Arrow />
 
                 {/* Treasury Vault */}
-                <Link to="/yield" className="block outline-none hover:scale-[1.02] transition-transform duration-300">
+                <Link to="/dashboard/yield" className="block outline-none hover:scale-[1.02] transition-transform duration-300">
                     <ArchBox>
                         <p className="text-[0.65rem] uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">On-Chain</p>
                         <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">Treasury Vault</p>

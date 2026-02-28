@@ -2,45 +2,44 @@ import os
 import json
 import logging
 from datetime import datetime
-import google.generativeai as genai
+from google import genai
 
 logger = logging.getLogger(__name__)
 
-# Initialize the Advanced AI Model SDK if the key is present
+# Initialize the Google GenAI client if the key is present
 API_KEY = os.getenv("AI_API_KEY")
+_client = None
 if API_KEY:
-    genai.configure(api_key=API_KEY)
+    _client = genai.Client(api_key=API_KEY)
 
 def make_decision_with_ai(balances, fx_rate, yield_data, upcoming_obligations, prediction, recommendation, risk_metrics=None):
     """
     Passes treasury state to Advanced AI Model to return a structured JSON decision.
     Falls back to a basic HOLD response if it fails.
     """
-    if not API_KEY:
+    if not API_KEY or not _client:
         logger.warning("No AI_API_KEY found. Reverting to rule-based execution.")
         raise ValueError("Missing AI Key")
-
-    model = genai.GenerativeModel("gemini-2.5-flash")
 
     state_context = f"""
     You are an autonomous AI Treasury Manager for ArcTreasury.
     You manage corporate stablecoin liquidity on the Arc Testnet.
-    
+
     Current State:
     - USDC Balance: ${balances.get('usdc', 0):,.2f}
     - EURC Balance: €{balances.get('eurc', 0):,.2f}
     - USYC Balance: ${balances.get('usyc', 0):,.2f} (Tokenized T-Bill Yield)
     - Current EURC/USDC FX Rate: {fx_rate:.4f}
     - Current USYC APY: 4.5%
-    
+
     Treasury Risk Assessment:
     - Overall Risk Score: {risk_metrics.get('score', 0) if risk_metrics else 0}/100 ({risk_metrics.get('level', 'none') if risk_metrics else 'none'})
     - Value at Risk (95%): ${risk_metrics.get('var', dict()).get('var_95', 0) if risk_metrics else 0:,.2f}
     - FX Volatility: {risk_metrics.get('var', dict()).get('volatility', 0) if risk_metrics else 0:.4f}%
-    
+
     Upcoming Payments (Obligations):
     {json.dumps(upcoming_obligations, indent=2)}
-    
+
     Market Oracle Forecast (EURC/USDC):
     Direction: {prediction.get('direction', 'neutral')}
     Confidence: {prediction.get('confidence', 0):.2f}
@@ -66,18 +65,21 @@ def make_decision_with_ai(balances, fx_rate, yield_data, upcoming_obligations, p
     """
 
     try:
-        response = model.generate_content(state_context)
+        response = _client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=state_context,
+        )
         response_text = response.text.strip()
-        
+
         # Strip markdown if AI ignores instructions
         if response_text.startswith("```json"):
             response_text = response_text[7:]
         if response_text.endswith("```"):
             response_text = response_text[:-3]
-            
+
         decision = json.loads(response_text)
         decision["metadata"] = {"source": "ai-agent-v1", "fx_rate": fx_rate}
-        
+
         # Add linked obligation ID if it's a payout
         if decision["action"] == "PAYOUT" and upcoming_obligations:
             # Try to find the matching obligation
@@ -85,7 +87,7 @@ def make_decision_with_ai(balances, fx_rate, yield_data, upcoming_obligations, p
                 if obl["currency"] in decision["token"]:
                     decision["linked_obligation"] = obl["id"]
                     break
-                    
+
         return decision
 
     except Exception as e:

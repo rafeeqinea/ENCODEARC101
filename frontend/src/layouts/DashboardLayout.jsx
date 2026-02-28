@@ -5,6 +5,7 @@ import Sidebar from '../components/Sidebar'
 import TopBar from '../components/TopBar'
 import ActivityTicker from '../components/ActivityTicker'
 import FloatingParticles from '../components/FloatingParticles'
+import ChatWidget from '../components/ChatWidget'
 import { useTreasury } from '../hooks/useTreasury'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { useDarkMode } from '../hooks/useDarkMode'
@@ -40,6 +41,7 @@ export default function DashboardLayout() {
                     </AnimatePresence>
                 </main>
             </div>
+            <ChatWidget />
         </div>
     )
 }

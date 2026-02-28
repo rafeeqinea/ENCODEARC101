@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useOutletContext, Link } from 'react-router-dom'
 import { DollarSign, Euro, Landmark, ArrowRight } from 'lucide-react'
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import StatCard from '../components/StatCard'
 import DecisionItem from '../components/DecisionItem'
+import DecisionDetailModal from '../components/DecisionDetailModal'
 import HatchedAccent from '../components/HatchedAccent'
 import StatusBadge from '../components/StatusBadge'
 import { formatCurrency, formatDate, formatApy } from '../lib/formatters'
@@ -12,6 +14,7 @@ export default function Dashboard() {
     const { balances, decisions, yieldData, obligations, risk, forecast } = useOutletContext()
     const bal = balances?.data || {}
     const decs = (decisions?.data || []).slice(0, 4) // Show 4 instead of 5
+    const [selectedDecision, setSelectedDecision] = useState(null)
     const yld = yieldData?.data || {}
     const obls = (obligations?.data || []).slice(0, 3)
     const riskData = risk?.data || { score: 0, level: 'none', factors: [], var: {} }
@@ -27,13 +30,13 @@ export default function Dashboard() {
         <div className="max-w-[1200px] mx-auto space-y-6">
             {/* Hero stat cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Link to="/agent" className="block hover:-translate-y-1 transition-transform duration-300">
+                <Link to="/dashboard/agent" className="block hover:-translate-y-1 transition-transform duration-300">
                     <StatCard label="USDC Balance" value={formatCurrency(animatedUsdc)} icon={DollarSign} delay={0} />
                 </Link>
-                <Link to="/fx" className="block hover:-translate-y-1 transition-transform duration-300">
+                <Link to="/dashboard/fx" className="block hover:-translate-y-1 transition-transform duration-300">
                     <StatCard label="EURC Balance" value={formatCurrency(animatedEurc, 2, 'EUR')} icon={Euro} delay={0.05} />
                 </Link>
-                <Link to="/yield" className="block hover:-translate-y-1 transition-transform duration-300">
+                <Link to="/dashboard/yield" className="block hover:-translate-y-1 transition-transform duration-300">
                     <StatCard label="USYC Balance" value={formatCurrency(animatedUsyc)} icon={Landmark} color="var(--color-success)" delay={0.1} />
                 </Link>
             </div>
@@ -82,7 +85,7 @@ export default function Dashboard() {
                 <div className="card-flat flex flex-col">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="font-heading text-base font-semibold">Yield Performance</h3>
-                        <Link to="/yield" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
+                        <Link to="/dashboard/yield" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
                             Details <ArrowRight className="w-3 h-3" />
                         </Link>
                     </div>
@@ -118,13 +121,13 @@ export default function Dashboard() {
                 <div className="lg:col-span-2 card-flat">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-heading text-base font-semibold">Recent Decisions</h3>
-                        <Link to="/agent" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
+                        <Link to="/dashboard/agent" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
                             View all <ArrowRight className="w-3 h-3" />
                         </Link>
                     </div>
                     <div className="divide-y divide-[var(--color-border-light)]">
                         {decs.map((d, i) => (
-                            <DecisionItem key={d.id} decision={d} index={i} compact />
+                            <DecisionItem key={d.id} decision={d} index={i} compact onSelect={setSelectedDecision} />
                         ))}
                     </div>
                 </div>
@@ -133,7 +136,7 @@ export default function Dashboard() {
                 <div className="lg:col-span-3 card-flat">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-heading text-base font-semibold">Upcoming Obligations</h3>
-                        <Link to="/obligations" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
+                        <Link to="/dashboard/obligations" className="text-xs text-[var(--color-accent)] font-medium hover:underline flex items-center gap-1">
                             Manage <ArrowRight className="w-3 h-3" />
                         </Link>
                     </div>
@@ -161,6 +164,13 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+
+            {/* Decision Detail Modal */}
+            <DecisionDetailModal
+                decision={selectedDecision}
+                open={!!selectedDecision}
+                onClose={() => setSelectedDecision(null)}
+            />
         </div>
     )
 }

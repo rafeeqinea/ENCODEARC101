@@ -33,15 +33,19 @@ class AgentLoop:
         self.broadcast_callback = broadcast_callback
         self.interval = interval_seconds
         self.forecaster = forecaster
-        self.history = decision_history
-        self.broadcast_callback = broadcast_callback
-        self.interval = interval_seconds
+        self._consecutive_failures = 0
+        self._max_backoff = 300  # 5 minutes max
 
     async def run(self) -> None:
-        """Run the agent loop indefinitely."""
+        """Run the agent loop indefinitely with exponential backoff on errors."""
         while True:
             await self.run_once()
-            await asyncio.sleep(self.interval)
+            if self._consecutive_failures > 0:
+                backoff = min(self.interval * (2 ** self._consecutive_failures), self._max_backoff)
+                logger.info("Backing off for %ds after %d consecutive failures", backoff, self._consecutive_failures)
+                await asyncio.sleep(backoff)
+            else:
+                await asyncio.sleep(self.interval)
 
     async def run_once(self) -> None:
         """Execute a single agent cycle."""
@@ -100,5 +104,8 @@ class AgentLoop:
             if self.broadcast_callback:
                 await self.broadcast_callback(decision)
 
+            self._consecutive_failures = 0
+
         except Exception as exc:
-            logger.exception("Agent loop iteration failed: %s", exc)
+            self._consecutive_failures += 1
+            logger.warning("Agent loop iteration failed (%d consecutive): %s", self._consecutive_failures, exc)

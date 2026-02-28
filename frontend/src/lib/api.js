@@ -39,4 +39,7 @@ export const api = {
     // ML Forecast & Risk
     getForecast: () => get('/api/forecast'),
     getRisk: () => get('/api/risk'),
+
+    // Chat
+    chat: (message) => post('/api/chat', { message }),
 }

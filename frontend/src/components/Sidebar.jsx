@@ -6,12 +6,12 @@ import { api } from '../lib/api'
 import ArcLogo from './ArcLogo'
 
 const NAV_ITEMS = [
-    { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/agent', icon: Bot, label: 'Agent' },
-    { to: '/fx', icon: ArrowLeftRight, label: 'FX Monitor' },
-    { to: '/yield', icon: TrendingUp, label: 'Yield' },
-    { to: '/obligations', icon: ClipboardList, label: 'Obligations' },
-    { to: '/architecture', icon: Boxes, label: 'Architecture' },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/dashboard/agent', icon: Bot, label: 'Agent' },
+    { to: '/dashboard/fx', icon: ArrowLeftRight, label: 'FX Monitor' },
+    { to: '/dashboard/yield', icon: TrendingUp, label: 'Yield' },
+    { to: '/dashboard/obligations', icon: ClipboardList, label: 'Obligations' },
+    { to: '/dashboard/architecture', icon: Boxes, label: 'Architecture' },
 ]
 
 export default function Sidebar({ agentStatus, isDemo }) {
@@ -56,7 +56,7 @@ export default function Sidebar({ agentStatus, isDemo }) {
                     <NavLink
                         key={to}
                         to={to}
-                        end={to === '/'}
+                        end={to === '/dashboard'}
                         className={({ isActive }) =>
                             `relative flex items-center gap-3 px-3 py-2.5 rounded-xl mb-0.5 text-[0.8125rem] font-medium transition-all duration-150 nav-item ${isActive
                                 ? 'sidebar-active bg-[var(--color-bg-secondary)] text-[var(--color-accent)]'

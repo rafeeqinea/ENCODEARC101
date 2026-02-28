@@ -1,7 +1,6 @@
 import asyncio
 import logging
 import secrets
-import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -559,10 +558,18 @@ async def run_agent_cycle():
             logger.info("Executing Agent Cycle via basic threshold math logic.")
             decision = make_decision(balances, fx_rate, yield_data, upcoming, prediction, recommendation)
         
-        # 7. Add to decision history
+        # 7. Add to decision history with full context snapshot
         decision["id"] = f"dec_{len(decision_history)+1:03d}"
         decision["timestamp"] = datetime.utcnow().isoformat() + "Z"
         decision["tx_hash"] = f"0x{secrets.token_hex(32)}"
+        decision["snapshot"] = {
+            "balances": balances,
+            "fx_rate": fx_rate,
+            "forecast": prediction,
+            "recommendation": recommendation,
+            "risk": risk_metrics,
+            "balance_source": balance_source,
+        }
         decision_history.insert(0, decision)
         
         # 8. Update agent state
@@ -652,6 +659,76 @@ async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  /api/chat ROUTE — Gemini-powered treasury chatbot
+# ═══════════════════════════════════════════════════════════════════════════
+
+class ChatMessage(BaseModel):
+    message: str
+
+@app.post("/api/chat")
+async def api_chat(body: ChatMessage) -> Dict[str, Any]:
+    """Chat with the AI treasury agent about current treasury state."""
+    from .ai_agent import _client as ai_client, API_KEY as ai_key
+
+    # Build treasury context for the chatbot
+    balances = seed_balances if not blockchain_available else seed_balances
+    current_fx = fx_history[-1]["rate"] if fx_history else 0.9215
+    recent_decisions = decision_history[:5]
+    pending_obls = [o for o in obligations_store if o["status"] in ("pending", "funded")]
+    risk = risk_assessor.assess_treasury_risk(
+        {"usdc": balances.get("usdc", 0), "eurc": balances.get("eurc", 0), "usyc": balances.get("usyc", 0)},
+        current_fx
+    )
+
+    context = f"""You are ArcTreasury AI Assistant — a helpful chatbot for an autonomous AI-powered treasury management system on Arc Testnet.
+
+Current Treasury State:
+- USDC: ${balances.get('usdc', 0):,.2f}
+- EURC: €{balances.get('eurc', 0):,.2f}
+- USYC: ${balances.get('usyc', 0):,.2f} (Tokenized T-Bill Yield, 4.5% APY)
+- Total Value: ~${balances.get('total_usd', 0):,.2f}
+
+FX Rate (EURC/USDC): {current_fx:.4f}
+Risk Score: {risk.get('score', 0)}/100 ({risk.get('level', 'unknown')})
+VaR (95%): ${risk.get('var', {}).get('var_95', 0):,.2f}
+
+Recent Agent Decisions (last 5):
+{chr(10).join(f"- [{d['action']}] {d['reason'][:100]}..." for d in recent_decisions)}
+
+Pending Obligations:
+{chr(10).join(f"- {o['recipient']}: {o['currency']} {o['amount']:,.2f} due {o['due_date'][:10]} ({o['status']})" for o in pending_obls) if pending_obls else "None"}
+
+Yield: ${yield_store['total_earned']:,.2f} earned, ${yield_store['total_deposited']:,.2f} deposited
+
+Answer the user's question clearly and concisely. If they ask about actions, explain what the autonomous agent would do. Keep responses under 200 words.
+
+User: {body.message}"""
+
+    if not ai_key or not ai_client:
+        return {
+            "response": "I'm running in demo mode without an AI API key. The treasury currently holds "
+                        f"${balances.get('usdc', 0):,.0f} USDC, €{balances.get('eurc', 0):,.0f} EURC, "
+                        f"and ${balances.get('usyc', 0):,.0f} USYC. Risk score is {risk.get('score', 0)}/100.",
+            "source": "fallback"
+        }
+
+    try:
+        response = ai_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=context,
+        )
+        return {"response": response.text.strip(), "source": "gemini-2.5-flash"}
+    except Exception as e:
+        logger.error("Chat AI error: %s", e)
+        return {
+            "response": f"AI temporarily unavailable. Treasury snapshot: "
+                        f"${balances.get('usdc', 0):,.0f} USDC, €{balances.get('eurc', 0):,.0f} EURC, "
+                        f"${balances.get('usyc', 0):,.0f} USYC. Risk: {risk.get('level', 'unknown')}.",
+            "source": "fallback"
+        }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  Legacy routes (backward compat)
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -683,4 +760,4 @@ async def add_obligation(body: CreateObligation) -> Dict[str, Any]:
 @app.post("/agent/run")
 async def trigger_run() -> Dict[str, Any]:
     """Legacy trigger agent cycle."""
-    return await api_agent_run()
+    return await run_agent_cycle()

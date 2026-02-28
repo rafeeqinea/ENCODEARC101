@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, ArrowLeftRight, CreditCard, Minus } from 'lucide-react'
 import { formatCurrency, formatTimestamp, truncateHash } from '../lib/formatters'
-import { useNavigate } from 'react-router-dom'
 
 const ACTION_CONFIG = {
     YIELD_DEPOSIT: { icon: TrendingUp, color: 'var(--color-success)', label: 'Yield Deposit', glow: 'rgba(34,197,94,0.3)' },
@@ -11,24 +10,17 @@ const ACTION_CONFIG = {
     HOLD: { icon: Minus, color: 'var(--color-text-muted)', label: 'Hold', glow: 'transparent' },
 }
 
-export default function DecisionItem({ decision, index = 0, compact = false }) {
+export default function DecisionItem({ decision, index = 0, compact = false, onSelect }) {
     const config = ACTION_CONFIG[decision.action] || ACTION_CONFIG.HOLD
     const Icon = config.icon
-    const navigate = useNavigate()
-
-    const handleNavigate = () => {
-        if (decision.action === 'FX_SWAP') navigate('/fx')
-        else if (decision.action.includes('YIELD')) navigate('/yield')
-        else if (decision.action === 'PAYOUT') navigate('/obligations')
-    }
 
     return (
         <motion.div
-            className={`flex items-start gap-3 p-3 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors ${decision.action !== 'HOLD' ? 'cursor-pointer' : ''}`}
+            className="flex items-start gap-3 p-3 rounded-xl hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer"
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.25, delay: index * 0.04 }}
-            onClick={decision.action !== 'HOLD' ? handleNavigate : undefined}
+            onClick={() => onSelect?.(decision)}
         >
             <div
                 className="glow-icon w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"

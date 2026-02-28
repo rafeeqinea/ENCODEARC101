@@ -4,6 +4,7 @@ import { Bot, Play, Clock, Zap, Loader2, Check, CheckCircle2 } from 'lucide-reac
 import { motion, AnimatePresence } from 'framer-motion'
 import StatCard from '../components/StatCard'
 import DecisionItem from '../components/DecisionItem'
+import DecisionDetailModal from '../components/DecisionDetailModal'
 import { formatTimestamp } from '../lib/formatters'
 import { useCountUp } from '../hooks/useCountUp'
 
@@ -16,6 +17,7 @@ export default function Agent() {
     const allDecisions = decisions.data || []
     const [filter, setFilter] = useState('All')
     const [runState, setRunState] = useState('idle')
+    const [selectedDecision, setSelectedDecision] = useState(null)
 
     // Animated
     const animatedDecisions = useCountUp(agentData.total_decisions || 0, 1500, 0)
@@ -121,10 +123,17 @@ export default function Agent() {
 
                 <div className="divide-y divide-[var(--color-border-light)] max-h-[600px] overflow-y-auto">
                     {filtered.map((d, i) => (
-                        <DecisionItem key={d.id} decision={d} index={i} />
+                        <DecisionItem key={d.id} decision={d} index={i} onSelect={setSelectedDecision} />
                     ))}
                 </div>
             </div>
+
+            {/* Decision Detail Modal */}
+            <DecisionDetailModal
+                decision={selectedDecision}
+                open={!!selectedDecision}
+                onClose={() => setSelectedDecision(null)}
+            />
         </div>
     )
 }

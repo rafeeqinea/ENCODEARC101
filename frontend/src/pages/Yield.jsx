@@ -152,7 +152,7 @@ export default function Yield() {
 
                                     <td className="py-2.5 px-3 text-xs font-mono text-[var(--color-text-muted)]">
                                         {entry.decision_id ? (
-                                            <Link to="/agent" className="text-[var(--color-accent)] hover:underline">
+                                            <Link to="/dashboard/agent" className="text-[var(--color-accent)] hover:underline">
                                                 Agent #{entry.decision_id}
                                             </Link>
                                         ) : '—'}

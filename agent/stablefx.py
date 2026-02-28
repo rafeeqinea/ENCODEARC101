@@ -99,14 +99,16 @@ class StableFXClient:
     async def get_rate(self) -> dict:
         """Get current USDC/EURC rate by requesting a small quote.
 
-        Returns: {"rate": 0.9215, "timestamp": "...", "source": "stablefx"}
+        Returns: {"rate": 0.9215, "timestamp": "...", "source": "stablefx"|"mock"}
         """
         quote = await self.get_quote("USDC", "EURC", "100.00")
         rate = float(quote.get("rate", 0.9215))
+        # Check if the quote came from the real API or mock fallback
+        is_mock = str(quote.get("id", "")).startswith("mock-")
         return {
             "rate": rate,
             "timestamp": datetime.utcnow().isoformat() + "Z",
-            "source": "stablefx" if not self._mock_mode else "mock",
+            "source": "mock" if is_mock or self._mock_mode else "stablefx",
             "fee": quote.get("fee", {}).get("amount", "0.15"),
         }
 
