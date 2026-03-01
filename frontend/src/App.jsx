@@ -17,6 +17,7 @@ const Nanopayments = lazy(() => import('./pages/Nanopayments'))
 const Transactions = lazy(() => import('./pages/Transactions'))
 const SettingsPage = lazy(() => import('./pages/Settings'))
 const Landing = lazy(() => import('./pages/Landing'))
+const Intro = lazy(() => import('./pages/Intro'))
 
 function RequireWallet({ children }) {
   const wallet = sessionStorage.getItem('arc-wallet')
@@ -116,7 +117,8 @@ export default function App() {
               </div>
             }>
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Intro />} />
+                <Route path="/connect" element={<Landing />} />
                 <Route path="/dashboard" element={<RequireWallet><DashboardLayout /></RequireWallet>}>
                   <Route index element={<Dashboard />} />
                   <Route path="agent" element={<Agent />} />
