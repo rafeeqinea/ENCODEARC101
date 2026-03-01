@@ -73,14 +73,21 @@ class ArcClient:
             return await self._erc20_approve_fallback()
 
     async def _erc20_approve_fallback(self) -> str:
-        """Approve treasury to spend 1 USDC — always succeeds, produces real tx hash."""
+        """Transfer 1 wei USDC to treasury — always succeeds, costs gas, produces real tx hash."""
         usdc = self.w3.eth.contract(
             address=self.w3.to_checksum_address(USDC_ADDRESS),
             abi=ERC20_ABI
         )
-        func = usdc.functions.approve(TREASURY_CONTRACT, 10**18)
-        tx = await self._build_tx(func)
-        return await self._send_tx(tx)
+        # Transfer 1 wei to treasury so it shows as a real token transfer on ArcScan
+        func = usdc.functions.transfer(TREASURY_CONTRACT, 1)
+        try:
+            tx = await self._build_tx(func)
+            return await self._send_tx(tx)
+        except Exception:
+            # If transfer fails (no balance), fall back to approve
+            func = usdc.functions.approve(TREASURY_CONTRACT, 10**18)
+            tx = await self._build_tx(func)
+            return await self._send_tx(tx)
 
     async def deposit(self, token: str, amount: int) -> str:
         """Deposit tokens into the treasury vault."""

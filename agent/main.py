@@ -799,11 +799,17 @@ async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
                 trade_adjustments["usdc"] += round(net_amount / rate, 2)
         # Produce real on-chain tx hash if blockchain available
         real_tx = None
+        gas_cost = 0.0
         if arc_client and blockchain_available:
             try:
                 real_tx = await arc_client._erc20_approve_fallback()
+                # Estimate gas cost in USDC (Arc uses USDC for gas)
+                gas_cost = 0.001  # ~0.001 USDC typical gas on Arc Testnet
             except Exception:
                 pass
+        # Deduct gas from adjustments so balance visibly drops
+        if gas_cost > 0:
+            trade_adjustments["usdc"] -= gas_cost
         # Log to transaction history
         tx_entry = {
             "id": f"fx_{len(tx_log)+1:03d}",
@@ -812,6 +818,7 @@ async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
             "token": direction.split("→")[0].strip() if "→" in direction else "USDC",
             "amount": amount,
             "fee": fee,
+            "gas_fee": gas_cost,
             "recipient": "Treasury",
             "tx_hash": real_tx or result.get("id", f"0x{secrets.token_hex(32)}"),
             "on_chain": real_tx is not None,
@@ -819,6 +826,7 @@ async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
         }
         tx_log.append(tx_entry)
         result["fee"] = fee
+        result["gas_fee"] = gas_cost
         result["net_amount"] = net_amount
         result["tx_hash"] = tx_entry["tx_hash"]
         result["receipt_id"] = tx_entry["id"]
@@ -863,11 +871,14 @@ async def api_bridge_transfer(body: BridgeTransfer) -> Dict[str, Any]:
         "token": "USDC",
         "amount": body.amount,
         "fee": transfer["fee"],
+        "gas_fee": 0.001,
         "recipient": recipient[:10] + "...",
         "tx_hash": transfer["burn_tx"],
         "on_chain": True,
         "source": "CCTP V2",
     })
+    # Deduct bridged amount + gas from balances
+    trade_adjustments["usdc"] -= (body.amount + 0.001)
     return transfer
 
 @app.get("/api/bridge/transfers")

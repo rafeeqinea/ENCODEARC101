@@ -1,25 +1,134 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Wallet, ShieldAlert, Activity, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Wallet, ShieldAlert, Activity, ArrowRight, CheckCircle2, Zap, TrendingUp, Globe, Bot } from 'lucide-react';
 import { ethers } from 'ethers';
 import ArcLogo from '../components/ArcLogo';
 
-const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay }}
-        className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl p-6 relative overflow-hidden group"
+/* ── Animated grid background ── */
+const GridBackground = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Perspective grid */}
+        <div className="absolute inset-0" style={{
+            backgroundImage: `
+                linear-gradient(rgba(249,115,22,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(249,115,22,0.04) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            maskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 100%)',
+        }} />
+        {/* Gradient orbs */}
+        <div className="absolute top-[10%] left-[15%] w-[500px] h-[500px] rounded-full bg-[#F97316] opacity-[0.06] blur-[150px]" />
+        <div className="absolute bottom-[5%] right-[10%] w-[400px] h-[400px] rounded-full bg-[#F97316] opacity-[0.04] blur-[120px]" />
+        <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] w-[600px] h-[600px] rounded-full bg-[#FBBF24] opacity-[0.03] blur-[180px]" />
+    </div>
+);
+
+/* ── Floating particles ── */
+const LANDING_PARTICLES = `
+@keyframes landing-float {
+    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.3; }
+    50% { transform: translateY(-20px) scale(1.2); opacity: 0.7; }
+}
+@keyframes landing-drift {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(10px, -15px); }
+    50% { transform: translate(-5px, -25px); }
+    75% { transform: translate(-15px, -10px); }
+    100% { transform: translate(0, 0); }
+}
+@keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(249,115,22,0.3), 0 0 60px rgba(249,115,22,0.1); }
+    50% { box-shadow: 0 0 30px rgba(249,115,22,0.5), 0 0 80px rgba(249,115,22,0.2); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes orbit {
+    0% { transform: rotate(0deg) translateX(140px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+}
+`;
+
+const FloatingParticles = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {Array.from({ length: 20 }).map((_, i) => (
+            <div
+                key={i}
+                className="absolute rounded-full bg-[#F97316]"
+                style={{
+                    width: `${2 + Math.random() * 3}px`,
+                    height: `${2 + Math.random() * 3}px`,
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    opacity: 0.2 + Math.random() * 0.3,
+                    animation: `landing-float ${4 + Math.random() * 6}s ease-in-out infinite`,
+                    animationDelay: `${Math.random() * 5}s`,
+                    willChange: 'transform, opacity',
+                }}
+            />
+        ))}
+    </div>
+);
+
+/* ── Orbiting icons around the hero visual ── */
+const OrbitItem = ({ icon: Icon, delay, duration, size = 32 }) => (
+    <div
+        className="absolute left-1/2 top-1/2"
+        style={{
+            animation: `orbit ${duration}s linear infinite`,
+            animationDelay: `${delay}s`,
+            willChange: 'transform',
+            marginLeft: -size / 2,
+            marginTop: -size / 2,
+        }}
     >
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-accent)] to-[var(--color-accent-hover)] opacity-0 group-hover:opacity-5 transition-opacity duration-500" />
-        <div className="w-12 h-12 bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] rounded-lg flex items-center justify-center mb-4">
-            <Icon className="w-6 h-6 text-[var(--color-accent)]" />
+        <div className="w-8 h-8 rounded-lg bg-[rgba(20,20,20,0.8)] border border-[rgba(249,115,22,0.3)] flex items-center justify-center backdrop-blur-sm">
+            <Icon className="w-4 h-4 text-[#F97316]" />
         </div>
-        <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">{title}</h3>
-        <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">
-            {desc}
-        </p>
+    </div>
+);
+
+/* ── Hero visual: pulsing AI core with orbit ring ── */
+const HeroVisual = () => (
+    <div className="relative w-[340px] h-[340px] mx-auto">
+        {/* Outer ring */}
+        <div className="absolute inset-0 rounded-full border border-[rgba(249,115,22,0.1)]" />
+        <div className="absolute inset-[30px] rounded-full border border-[rgba(249,115,22,0.08)]" />
+        <div className="absolute inset-[60px] rounded-full border border-dashed border-[rgba(249,115,22,0.12)]"
+            style={{ animation: 'arch-rotate 30s linear infinite', willChange: 'transform' }} />
+
+        {/* Center core */}
+        <div className="absolute inset-[90px] rounded-full bg-gradient-to-br from-[#F97316] to-[#FBBF24] flex items-center justify-center"
+            style={{ animation: 'glow-pulse 3s ease-in-out infinite', willChange: 'box-shadow' }}>
+            <div className="text-center">
+                <Bot className="w-10 h-10 text-white mx-auto mb-1" />
+                <span className="text-[0.6rem] font-bold text-white/90 uppercase tracking-widest">AI Agent</span>
+            </div>
+        </div>
+
+        {/* Orbiting icons */}
+        <OrbitItem icon={TrendingUp} delay={0} duration={20} />
+        <OrbitItem icon={Globe} delay={5} duration={20} />
+        <OrbitItem icon={Zap} delay={10} duration={20} />
+        <OrbitItem icon={ShieldAlert} delay={15} duration={20} />
+    </div>
+);
+
+/* ── Feature pill ── */
+const FeaturePill = ({ icon: Icon, text, delay }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay }}
+        className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[rgba(20,20,20,0.6)] border border-[rgba(249,115,22,0.15)] backdrop-blur-sm hover:border-[rgba(249,115,22,0.4)] transition-colors group"
+    >
+        <div className="w-8 h-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center flex-shrink-0 group-hover:bg-[#F97316]/20 transition-colors">
+            <Icon className="w-4 h-4 text-[#F97316]" />
+        </div>
+        <span className="text-sm font-medium text-[var(--color-text-primary)]">{text}</span>
     </motion.div>
 );
 
@@ -40,15 +149,14 @@ export default function Landing() {
             }
 
             const provider = new ethers.BrowserProvider(window.ethereum);
-            
+
             // Request Arc Testnet chain switch
             try {
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x4cef52' }], // 5042002
+                    params: [{ chainId: '0x4cef52' }],
                 });
             } catch (switchErr) {
-                // Chain not added — add it
                 if (switchErr.code === 4902) {
                     await window.ethereum.request({
                         method: 'wallet_addEthereumChain',
@@ -80,131 +188,154 @@ export default function Landing() {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--color-bg)] flex flex-col relative overflow-hidden">
-            {/* Background Orbs */}
-            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-[var(--color-accent)] opacity-[0.03] blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-[var(--color-success)] opacity-[0.02] blur-[120px] pointer-events-none" />
+        <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
+            <style>{LANDING_PARTICLES}</style>
+            <GridBackground />
+            <FloatingParticles />
 
-            {/* Basic Nav */}
-            <nav className="w-full px-8 py-6 flex items-center justify-between border-b border-[var(--color-border)]/50 backdrop-blur-md sticky top-0 z-50">
+            {/* Nav */}
+            <nav className="w-full px-8 py-5 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 z-50 bg-[rgba(5,5,5,0.7)]">
                 <div className="flex items-center gap-3">
-                    <ArcLogo size={40} />
-                    <span className="text-xl font-bold tracking-tight text-[var(--color-text)]">ArcTreasury</span>
+                    <ArcLogo size={36} />
+                    <span className="text-lg font-bold tracking-tight text-white">ArcTreasury</span>
                 </div>
-                <div className="text-sm font-medium text-[var(--color-text-muted)] bg-[var(--color-bg-secondary)] px-3 py-1.5 rounded-full border border-[var(--color-border)]">
-                    <span className="w-2 h-2 inline-block bg-green-500 rounded-full mr-2 animate-pulse" />
-                    Arc Testnet Live
+                <div className="flex items-center gap-4">
+                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                        <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+                        <span className="text-xs font-mono text-[#22C55E]">Arc Testnet</span>
+                    </div>
+                    <a href="https://github.com/rafeeqinea/ENCODEARC101" target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-zinc-500 hover:text-[#F97316] transition-colors font-mono">
+                        GitHub ↗
+                    </a>
                 </div>
             </nav>
 
-            {/* Main Content */}
-            <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
-
-                {/* Left: Hero Copy */}
+            {/* Hero */}
+            <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative z-10">
+                {/* Badge */}
                 <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.7, ease: "easeOut" }}
-                    className="flex flex-col gap-6"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="inline-flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-4 py-2 rounded-full mb-8"
                 >
-                    <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3 py-1.5 rounded-full w-fit mb-2">
-                        <Activity className="w-3.5 h-3.5" />
-                        Hackathon MVP
-                    </div>
-
-                    <h1 className="text-5xl lg:text-7xl font-bold text-[var(--color-text)] tracking-tight leading-[1.1]">
-                        Autonomous <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent)] to-[#FBBF24]">
-                            Liquidity Engine.
-                        </span>
-                    </h1>
-
-                    <p className="text-lg text-[var(--color-text-muted)] max-w-md leading-relaxed">
-                        Connect your Arc wallet to unleash an Advanced AI Agent. Automate stablecoin yields, predict FX rates, and execute real-world payouts—all settled securely on-chain.
-                    </p>
-
-                    <div className="pt-8">
-                        <button
-                            onClick={connectWallet}
-                            disabled={isConnecting || address}
-                            className={`
-                relative group overflow-hidden rounded-xl px-8 py-4 font-semibold text-lg transition-all duration-300
-                ${address
-                                    ? 'bg-green-500/10 text-green-500 border border-green-500/20'
-                                    : 'bg-[var(--color-text)] text-[var(--color-bg)] hover:scale-[1.02] shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-[0_0_60px_rgba(255,255,255,0.2)]'}
-              `}
-                        >
-                            <div className="flex items-center gap-3 relative z-10">
-                                {address ? (
-                                    <>
-                                        <CheckCircle2 className="w-5 h-5" />
-                                        Connected: {address}
-                                    </>
-                                ) : isConnecting ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-[var(--color-bg)] border-t-transparent rounded-full animate-spin" />
-                                        Authenticating Web3...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Wallet className="w-5 h-5" />
-                                        Connect Arc Wallet
-                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                    </>
-                                )}
-                            </div>
-                        </button>
-                        {error && <p className="mt-3 text-red-400 text-sm font-medium">{error}</p>}
-                    </div>
+                    <Zap className="w-3.5 h-3.5" />
+                    Encode × Arc Hackathon
                 </motion.div>
 
-                {/* Right: Feature Grid */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                    <FeatureCard
-                        delay={0.2}
-                        icon={ShieldAlert}
-                        title="AI Decision Matrix"
-                        desc="Powered by advanced Machine Learning Models. Analyzes Oracle data and balances to construct mathematically perfect trade payloads."
-                    />
-                    <FeatureCard
-                        delay={0.3}
-                        icon={Activity}
-                        title="Circle StableFX"
-                        desc="Instant atomic swaps between USDC and EURC using native Circle backend infrastructure."
-                    />
-                    <FeatureCard
-                        delay={0.4}
-                        icon={CheckCircle2}
-                        title="Tokenized Yield"
-                        desc="Idle capital is automatically parked in Hashnote USYC to earn risk-free 4.5% APY while waiting for obligations."
-                    />
-                    <FeatureCard
-                        delay={0.5}
-                        icon={Wallet}
-                        title="Multi-Chain Payouts"
-                        desc="Intelligent timelines auto-fund and execute corporate invoices exactly when they are due."
-                    />
+                {/* Headline */}
+                <motion.h1
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="text-5xl md:text-7xl lg:text-8xl font-bold text-center tracking-tight leading-[0.95] mb-6 max-w-4xl"
+                >
+                    <span className="text-white">Your Treasury</span>
+                    <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] via-[#FBBF24] to-[#F97316]"
+                        style={{
+                            backgroundSize: '200% auto',
+                            animation: 'shimmer 4s linear infinite',
+                            willChange: 'background-position',
+                        }}>
+                        Runs Itself.
+                    </span>
+                </motion.h1>
+
+                {/* Subtitle */}
+                <motion.p
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="text-lg md:text-xl text-zinc-400 text-center max-w-2xl mb-10 leading-relaxed"
+                >
+                    An autonomous AI agent that manages stablecoins, optimizes yield,
+                    hedges FX risk, and executes payouts — all settled on-chain, every 30 seconds.
+                </motion.p>
+
+                {/* CTA Button */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: 0.35 }}
+                    className="mb-16"
+                >
+                    <button
+                        onClick={connectWallet}
+                        disabled={isConnecting || address}
+                        className={`relative group overflow-hidden rounded-2xl px-10 py-5 font-semibold text-lg transition-all duration-300 ${
+                            address
+                                ? 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30'
+                                : 'bg-gradient-to-r from-[#F97316] to-[#FBBF24] text-white hover:scale-[1.03] active:scale-[0.98]'
+                        }`}
+                        style={!address ? { animation: 'glow-pulse 3s ease-in-out infinite', willChange: 'box-shadow' } : {}}
+                    >
+                        {/* Shimmer overlay */}
+                        {!address && !isConnecting && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                style={{ animation: 'shimmer 3s linear infinite', backgroundSize: '200% auto', willChange: 'background-position' }} />
+                        )}
+                        <div className="flex items-center gap-3 relative z-10">
+                            {address ? (
+                                <>
+                                    <CheckCircle2 className="w-5 h-5" />
+                                    Connected: {address}
+                                </>
+                            ) : isConnecting ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    Connecting to Arc...
+                                </>
+                            ) : (
+                                <>
+                                    <Wallet className="w-5 h-5" />
+                                    Launch Dashboard
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </div>
+                    </button>
+                    {error && <p className="mt-4 text-red-400 text-sm font-medium text-center">{error}</p>}
+                </motion.div>
+
+                {/* Hero Visual */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="mb-16"
+                >
+                    <HeroVisual />
+                </motion.div>
+
+                {/* Feature pills */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl w-full mb-12">
+                    <FeaturePill icon={Bot} text="AI Agent — 30s decision loop" delay={0.5} />
+                    <FeaturePill icon={Activity} text="Circle StableFX — live FX" delay={0.6} />
+                    <FeaturePill icon={TrendingUp} text="Hashnote USYC — 4.5% APY" delay={0.7} />
+                    <FeaturePill icon={Globe} text="CCTP V2 — cross-chain bridge" delay={0.8} />
                 </div>
             </main>
 
-            {/* Live Stats Bar */}
-            <div className="w-full border-t border-[var(--color-border)]/50 bg-[var(--color-bg-secondary)]/50 backdrop-blur-md">
-                <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {/* Bottom stats */}
+            <div className="w-full border-t border-white/5 bg-[rgba(5,5,5,0.8)] backdrop-blur-md">
+                <div className="max-w-5xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6">
                     {[
-                        { label: 'Deployed on', value: 'Arc Testnet', accent: true },
-                        { label: 'Smart Contracts', value: '4 Verified' },
-                        { label: 'Integrations', value: '6 Live APIs' },
-                        { label: 'Settlement', value: '< 1 Second' },
+                        { label: 'Blockchain', value: 'Arc Testnet', accent: true },
+                        { label: 'Contracts', value: '4 Deployed' },
+                        { label: 'Integrations', value: '6 Live' },
+                        { label: 'Finality', value: '< 500ms' },
                     ].map((stat, i) => (
                         <motion.div
                             key={stat.label}
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.8 + i * 0.1 }}
+                            transition={{ delay: 1.0 + i * 0.08 }}
                             className="text-center"
                         >
-                            <p className={`font-mono text-xl font-bold ${stat.accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'}`}>{stat.value}</p>
-                            <p className="text-xs text-[var(--color-text-muted)] mt-1 uppercase tracking-wider">{stat.label}</p>
+                            <p className={`font-mono text-base font-bold ${stat.accent ? 'text-[#F97316]' : 'text-white'}`}>{stat.value}</p>
+                            <p className="text-[0.65rem] text-zinc-600 mt-1 uppercase tracking-wider">{stat.label}</p>
                         </motion.div>
                     ))}
                 </div>

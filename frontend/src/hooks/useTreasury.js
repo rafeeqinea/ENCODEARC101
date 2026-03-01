@@ -4,7 +4,7 @@ import { useApi } from './useApi'
 import { MOCK } from '../data/mockData'
 
 export function useTreasury() {
-    const balances = useApi(api.getBalances, { interval: 30000, fallback: MOCK.balances })
+    const balances = useApi(api.getBalances, { interval: 10000, fallback: MOCK.balances })
     const agent = useApi(api.getAgent, { interval: 30000, fallback: MOCK.agent })
     const decisions = useApi(api.getDecisions, { interval: 20000, fallback: MOCK.decisions })
     const obligations = useApi(api.getObligations, { interval: 30000, fallback: MOCK.obligations })

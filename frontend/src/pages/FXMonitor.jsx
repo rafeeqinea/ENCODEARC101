@@ -85,6 +85,7 @@ export default function FXMonitor() {
             setTradeStatus('completed')
             setLastTrade({
                 fee: result?.fee || 1.50,
+                gas_fee: result?.gas_fee || 0,
                 net: result?.net_amount || parseFloat(quoteAmount),
                 receipt: result?.receipt_id,
                 direction: quoteDirection,
@@ -104,8 +105,12 @@ export default function FXMonitor() {
                 source: "Circle StableFX"
             }, ...prev])
 
-            // Refresh balances so dashboard updates
-            if (context.balances?.refresh) context.balances.refresh()
+            // Refresh balances so dashboard updates immediately
+            if (context.balances?.refresh) {
+                context.balances.refresh()
+                // Refresh again after 2s to catch any async updates
+                setTimeout(() => context.balances.refresh(), 2000)
+            }
 
             setTimeout(() => {
                 setTradeStatus(null)
@@ -261,6 +266,7 @@ export default function FXMonitor() {
                                     <p className="text-sm font-semibold text-[var(--color-success)]">Trade Executed Successfully</p>
                                     <p className="text-xs text-[var(--color-text-secondary)]">
                                         {lastTrade.direction} • Net: {typeof lastTrade.net === 'number' ? lastTrade.net.toLocaleString() : lastTrade.net} • Fee: ${typeof lastTrade.fee === 'number' ? lastTrade.fee.toFixed(2) : lastTrade.fee}
+                                        {lastTrade.gas_fee > 0 && ` • Gas: $${lastTrade.gas_fee.toFixed(4)}`}
                                     </p>
                                 </div>
                             </div>
