@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings as SettingsIcon, Globe, Key, Server, CheckCircle2, XCircle, Shield, RefreshCw, ExternalLink, Copy, Check, Save, Sliders } from 'lucide-react'
+import { Settings as SettingsIcon, Globe, Key, Server, CheckCircle2, XCircle, Shield, RefreshCw, ExternalLink, Copy, Check, Save, Sliders, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { api } from '../lib/api'
 
@@ -43,17 +43,24 @@ export default function SettingsPage() {
     const [settings, setSettings] = useState(null)
     const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
+    const [health, setHealth] = useState(null)
 
     useEffect(() => {
         async function load() {
             try {
-                const [w, s] = await Promise.all([api.getWallet(), api.getSettings()])
+                const [w, s, h] = await Promise.all([api.getWallet(), api.getSettings(), api.getHealth()])
                 setWallet(w)
                 setSettings(s)
+                setHealth(h)
             } catch { }
             setChecking(false)
         }
         load()
+        // Re-check health every 30s
+        const iv = setInterval(async () => {
+            try { setHealth(await api.getHealth()) } catch {}
+        }, 30000)
+        return () => clearInterval(iv)
     }, [])
 
     const handleSave = async () => {
@@ -79,13 +86,13 @@ export default function SettingsPage() {
     }
 
     const integrations = [
-        { name: 'Arc Testnet RPC', endpoint: 'rpc.testnet.arc.network', status: wallet?.blockchain_available },
-        { name: 'Circle StableFX', endpoint: 'api-sandbox.circle.com', status: true },
-        { name: 'Stork Oracle', endpoint: 'rest.jp.stork-oracle.network', status: true },
-        { name: 'Ollama AI', endpoint: 'localhost:11434 (local)', status: true },
-        { name: 'CCTP V2 Bridge', endpoint: 'iris-api-sandbox.circle.com', status: true },
-        { name: 'USYC Teller', endpoint: 'Ethereum Sepolia (arch. integrated)', status: true },
-        { name: 'Circle CPN', endpoint: 'Conceptual integration', status: null },
+        { name: 'Arc Testnet RPC', endpoint: 'rpc.testnet.arc.network', status: health ? health.arc_rpc : undefined },
+        { name: 'Circle StableFX', endpoint: 'api-sandbox.circle.com', status: health ? health.circle_stablefx : undefined },
+        { name: 'Stork Oracle', endpoint: 'rest.jp.stork-oracle.network', status: health ? health.stork_oracle : undefined },
+        { name: 'Ollama AI', endpoint: 'localhost:11434 (local)', status: health ? health.ollama_ai : undefined },
+        { name: 'CCTP V2 Bridge', endpoint: 'iris-api-sandbox.circle.com', status: health ? health.cctp_bridge : undefined },
+        { name: 'USYC Teller', endpoint: 'Ethereum Sepolia (arch. integrated)', status: health ? health.usyc_teller : undefined },
+        { name: 'Circle CPN', endpoint: 'Conceptual integration', status: health ? health.cpn : null },
     ]
 
     return (
@@ -273,6 +280,8 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-3">
                                 {int.status === null ? (
                                     <span className="w-2.5 h-2.5 rounded-full bg-[var(--color-text-muted)]" />
+                                ) : int.status === undefined ? (
+                                    <Loader2 className="w-3 h-3 text-[var(--color-text-muted)] animate-spin" />
                                 ) : (
                                     <StatusDot ok={int.status} />
                                 )}

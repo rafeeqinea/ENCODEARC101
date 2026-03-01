@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wallet, ShieldAlert, Activity, ArrowRight, CheckCircle2, Zap, TrendingUp, Globe, Bot } from 'lucide-react';
+import { Wallet, Shield, Activity, ArrowRight, CheckCircle2, Zap, TrendingUp, Globe, Bot } from 'lucide-react';
 import { ethers } from 'ethers';
 import ArcLogo from '../components/ArcLogo';
 
@@ -46,9 +46,13 @@ const LANDING_PARTICLES = `
     0% { background-position: -200% center; }
     100% { background-position: 200% center; }
 }
-@keyframes orbit {
-    0% { transform: rotate(0deg) translateX(140px) rotate(0deg); }
-    100% { transform: rotate(360deg) translateX(140px) rotate(-360deg); }
+@keyframes orbit-inner {
+    0% { transform: rotate(0deg) translateX(145px) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(145px) rotate(-360deg); }
+}
+@keyframes orbit-outer {
+    0% { transform: rotate(0deg) translateX(210px) rotate(0deg); }
+    100% { transform: rotate(-360deg) translateX(210px) rotate(360deg); }
 }
 `;
 
@@ -74,11 +78,11 @@ const FloatingParticles = () => (
 );
 
 /* ── Orbiting icons around the hero visual ── */
-const OrbitItem = ({ icon: Icon, delay, duration, size = 32 }) => (
+const OrbitItem = ({ icon: Icon, delay, duration, ring = 'outer', size = 32 }) => (
     <div
         className="absolute left-1/2 top-1/2"
         style={{
-            animation: `orbit ${duration}s linear infinite`,
+            animation: `orbit-${ring} ${duration}s linear infinite`,
             animationDelay: `${delay}s`,
             willChange: 'transform',
             marginLeft: -size / 2,
@@ -93,27 +97,31 @@ const OrbitItem = ({ icon: Icon, delay, duration, size = 32 }) => (
 
 /* ── Hero visual: pulsing AI core with orbit ring ── */
 const HeroVisual = () => (
-    <div className="relative w-[340px] h-[340px] mx-auto">
+    <div className="relative w-[480px] h-[480px] mx-auto" style={{ overflow: 'visible' }}>
         {/* Outer ring */}
         <div className="absolute inset-0 rounded-full border border-[rgba(249,115,22,0.1)]" />
-        <div className="absolute inset-[30px] rounded-full border border-[rgba(249,115,22,0.08)]" />
-        <div className="absolute inset-[60px] rounded-full border border-dashed border-[rgba(249,115,22,0.12)]"
+        {/* Outer orbit path — 210px radius (240-210=30) */}
+        <div className="absolute inset-[30px] rounded-full border border-dashed border-[rgba(249,115,22,0.08)]"
+            style={{ animation: 'arch-rotate 40s linear infinite reverse', willChange: 'transform' }} />
+        {/* Inner orbit path — 145px radius (240-145=95) */}
+        <div className="absolute inset-[95px] rounded-full border border-dashed border-[rgba(249,115,22,0.12)]"
             style={{ animation: 'arch-rotate 30s linear infinite', willChange: 'transform' }} />
 
-        {/* Center core */}
-        <div className="absolute inset-[90px] rounded-full bg-gradient-to-br from-[#F97316] to-[#FBBF24] flex items-center justify-center"
+        {/* Center core — inset 140 → 200px diameter, 100px radius */}
+        <div className="absolute inset-[140px] rounded-full bg-gradient-to-br from-[#F97316] to-[#FBBF24] flex items-center justify-center z-10"
             style={{ animation: 'glow-pulse 3s ease-in-out infinite', willChange: 'box-shadow' }}>
             <div className="text-center">
-                <Bot className="w-10 h-10 text-white mx-auto mb-1" />
+                <Bot className="w-12 h-12 text-white mx-auto mb-1" />
                 <span className="text-[0.6rem] font-bold text-white/90 uppercase tracking-widest">AI Agent</span>
             </div>
         </div>
 
-        {/* Orbiting icons */}
-        <OrbitItem icon={TrendingUp} delay={0} duration={20} />
-        <OrbitItem icon={Globe} delay={5} duration={20} />
-        <OrbitItem icon={Zap} delay={10} duration={20} />
-        <OrbitItem icon={ShieldAlert} delay={15} duration={20} />
+        {/* Orbiting icons — inner ring (closer, clockwise) */}
+        <OrbitItem icon={TrendingUp} delay={0} duration={18} ring="inner" />
+        <OrbitItem icon={Shield} delay={9} duration={18} ring="inner" />
+        {/* Orbiting icons — outer ring (wider, counter-clockwise) */}
+        <OrbitItem icon={Globe} delay={3} duration={26} ring="outer" />
+        <OrbitItem icon={Zap} delay={16} duration={26} ring="outer" />
     </div>
 );
 
@@ -188,7 +196,7 @@ export default function Landing() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] flex flex-col relative overflow-hidden">
+        <div className="h-screen bg-[#050505] flex flex-col relative overflow-hidden">
             <style>{LANDING_PARTICLES}</style>
             <GridBackground />
             <FloatingParticles />
@@ -211,110 +219,116 @@ export default function Landing() {
                 </div>
             </nav>
 
-            {/* Hero */}
-            <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative z-10">
-                {/* Badge */}
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="inline-flex items-center gap-2 text-[0.65rem] font-bold uppercase tracking-[0.2em] text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-4 py-2 rounded-full mb-8"
-                >
-                    <Zap className="w-3.5 h-3.5" />
-                    Encode × Arc Hackathon
-                </motion.div>
+            {/* Hero — split layout */}
+            <main className="flex-1 flex items-center justify-center px-8 md:px-16 relative z-10 min-h-0">
+                <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16 max-w-6xl w-full">
 
-                {/* Headline */}
-                <motion.h1
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.1 }}
-                    className="text-5xl md:text-7xl lg:text-8xl font-bold text-center tracking-tight leading-[0.95] mb-6 max-w-4xl"
-                >
-                    <span className="text-white">Your Treasury</span>
-                    <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] via-[#FBBF24] to-[#F97316]"
-                        style={{
-                            backgroundSize: '200% auto',
-                            animation: 'shimmer 4s linear infinite',
-                            willChange: 'background-position',
-                        }}>
-                        Runs Itself.
-                    </span>
-                </motion.h1>
+                    {/* Left: text + CTA */}
+                    <div className="flex-1 flex flex-col items-start">
+                        {/* Badge */}
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5 }}
+                            className="inline-flex items-center gap-2 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-3 py-1.5 rounded-full mb-4"
+                        >
+                            <Zap className="w-3.5 h-3.5" />
+                            Encode × Arc Hackathon
+                        </motion.div>
 
-                {/* Subtitle */}
-                <motion.p
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="text-lg md:text-xl text-zinc-400 text-center max-w-2xl mb-10 leading-relaxed"
-                >
-                    An autonomous AI agent that manages stablecoins, optimizes yield,
-                    hedges FX risk, and executes payouts — all settled on-chain, every 30 seconds.
-                </motion.p>
+                        {/* Headline */}
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.1 }}
+                            className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[0.95] mb-4"
+                        >
+                            <span className="text-white">Your Treasury</span>
+                            <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] via-[#FBBF24] to-[#F97316]"
+                                style={{
+                                    backgroundSize: '200% auto',
+                                    animation: 'shimmer 4s linear infinite',
+                                    willChange: 'background-position',
+                                }}>
+                                Runs Itself.
+                            </span>
+                        </motion.h1>
 
-                {/* CTA Button */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.35 }}
-                    className="mb-16"
-                >
-                    <button
-                        onClick={connectWallet}
-                        disabled={isConnecting || address}
-                        className={`relative group overflow-hidden rounded-2xl px-10 py-5 font-semibold text-lg transition-all duration-300 ${
-                            address
-                                ? 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30'
-                                : 'bg-gradient-to-r from-[#F97316] to-[#FBBF24] text-white hover:scale-[1.03] active:scale-[0.98]'
-                        }`}
-                        style={!address ? { animation: 'glow-pulse 3s ease-in-out infinite', willChange: 'box-shadow' } : {}}
-                    >
-                        {/* Shimmer overlay */}
-                        {!address && !isConnecting && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                                style={{ animation: 'shimmer 3s linear infinite', backgroundSize: '200% auto', willChange: 'background-position' }} />
-                        )}
-                        <div className="flex items-center gap-3 relative z-10">
-                            {address ? (
-                                <>
-                                    <CheckCircle2 className="w-5 h-5" />
-                                    Connected: {address}
-                                </>
-                            ) : isConnecting ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    Connecting to Arc...
-                                </>
-                            ) : (
-                                <>
-                                    <Wallet className="w-5 h-5" />
-                                    Launch Dashboard
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </>
-                            )}
+                        {/* Subtitle */}
+                        <motion.p
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                            className="text-sm md:text-base text-zinc-400 max-w-md mb-6 leading-relaxed"
+                        >
+                            An autonomous AI agent that manages stablecoins, optimizes yield,
+                            hedges FX risk, and executes payouts — all settled on-chain, every 30 seconds.
+                        </motion.p>
+
+                        {/* CTA Button */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.4, delay: 0.35 }}
+                            className="mb-6"
+                        >
+                            <button
+                                onClick={connectWallet}
+                                disabled={isConnecting || address}
+                                className={`relative group overflow-hidden rounded-xl px-8 py-4 font-semibold text-base transition-all duration-300 ${
+                                    address
+                                        ? 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30'
+                                        : 'bg-gradient-to-r from-[#F97316] to-[#FBBF24] text-white hover:scale-[1.03] active:scale-[0.98]'
+                                }`}
+                                style={!address ? { animation: 'glow-pulse 3s ease-in-out infinite', willChange: 'box-shadow' } : {}}
+                            >
+                                {!address && !isConnecting && (
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                        style={{ animation: 'shimmer 3s linear infinite', backgroundSize: '200% auto', willChange: 'background-position' }} />
+                                )}
+                                <div className="flex items-center gap-3 relative z-10">
+                                    {address ? (
+                                        <>
+                                            <CheckCircle2 className="w-5 h-5" />
+                                            Connected: {address}
+                                        </>
+                                    ) : isConnecting ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Connecting to Arc...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Wallet className="w-5 h-5" />
+                                            Launch Dashboard
+                                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
+                                </div>
+                            </button>
+                            {error && <p className="mt-3 text-red-400 text-sm font-medium">{error}</p>}
+                        </motion.div>
+
+                        {/* Feature pills — 2x2 grid */}
+                        <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+                            <FeaturePill icon={Bot} text="AI Agent — 30s loop" delay={0.5} />
+                            <FeaturePill icon={Activity} text="Circle StableFX" delay={0.6} />
+                            <FeaturePill icon={TrendingUp} text="USYC — 4.5% APY" delay={0.7} />
+                            <FeaturePill icon={Globe} text="CCTP V2 Bridge" delay={0.8} />
                         </div>
-                    </button>
-                    {error && <p className="mt-4 text-red-400 text-sm font-medium text-center">{error}</p>}
-                </motion.div>
+                    </div>
 
-                {/* Hero Visual */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                    className="mb-16"
-                >
-                    <HeroVisual />
-                </motion.div>
+                    {/* Right: solar system */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, delay: 0.3 }}
+                        className="flex-shrink-0"
+                    >
+                        <HeroVisual />
+                    </motion.div>
 
-                {/* Feature pills */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl w-full mb-12">
-                    <FeaturePill icon={Bot} text="AI Agent — 30s decision loop" delay={0.5} />
-                    <FeaturePill icon={Activity} text="Circle StableFX — live FX" delay={0.6} />
-                    <FeaturePill icon={TrendingUp} text="Hashnote USYC — 4.5% APY" delay={0.7} />
-                    <FeaturePill icon={Globe} text="CCTP V2 — cross-chain bridge" delay={0.8} />
                 </div>
             </main>
 

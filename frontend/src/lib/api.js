@@ -36,6 +36,7 @@ export const api = {
     // Wallet
     getWallet: () => get('/api/wallet'),
     getStatus: () => get('/api/agent'),
+    getHealth: () => get('/api/health'),
 
     // Transactions & Receipts
     getTransactions: () => get('/api/transactions'),

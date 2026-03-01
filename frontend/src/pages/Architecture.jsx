@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ExternalLink, ShieldCheck, Database, Zap, Globe, Cpu, ArrowRight,
   Layers, Brain, Wallet, TrendingUp, RefreshCw, Lock, BarChart3,
-  Eye, ChevronDown, ChevronUp, ArrowDown, Activity, Receipt
+  Eye, ChevronDown, ChevronUp, ArrowDown, Activity, Receipt, Loader2
 } from 'lucide-react'
+import { api } from '../lib/api'
 
 /* ── Looping CSS animations injected once ── */
 const ANIM_STYLES = `
@@ -122,6 +123,18 @@ function FlowArrow({ vertical = false }) {
 }
 
 export default function Architecture() {
+    const [health, setHealth] = useState(null);
+
+    useEffect(() => {
+        const fetchHealth = () => api.getHealth().then(setHealth).catch(() => {});
+        fetchHealth();
+        const id = setInterval(fetchHealth, 30000);
+        return () => clearInterval(id);
+    }, []);
+
+    // Map health keys to integration names
+    const isLive = (key) => health ? !!health[key] : null; // null = loading
+
     return (
         <div className="max-w-[1100px] mx-auto space-y-8">
             {/* Inject animation styles */}
@@ -131,13 +144,25 @@ export default function Architecture() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="flex items-center gap-3 mb-1">
                     <h2 className="font-heading text-2xl font-bold text-[var(--color-text-primary)]">How ArcTreasury Works</h2>
-                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                        <span className="relative flex h-2 w-2">
-                            <span className="arch-status-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                        </span>
-                        <span className="text-[0.6rem] font-semibold text-green-400 uppercase tracking-wider">System Live</span>
-                    </span>
+                    {(() => {
+                        const liveCount = health ? Object.values(health).filter(Boolean).length : 0;
+                        const totalCount = health ? Object.keys(health).length : 1;
+                        const allUp = health && liveCount >= totalCount - 1; // CPN is expected offline
+                        const loading = !health;
+                        const color = loading ? 'yellow' : allUp ? 'green' : 'yellow';
+                        const label = loading ? 'Checking…' : allUp ? 'System Live' : `${liveCount}/${totalCount} Live`;
+                        return (
+                            <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-${color}-500/10 border border-${color}-500/20`}>
+                                {loading ? <Loader2 className="w-3 h-3 animate-spin text-yellow-400" /> : (
+                                    <span className="relative flex h-2 w-2">
+                                        <span className={`arch-status-pulse absolute inline-flex h-full w-full rounded-full bg-${color}-400 opacity-75`}></span>
+                                        <span className={`relative inline-flex rounded-full h-2 w-2 bg-${color}-500`}></span>
+                                    </span>
+                                )}
+                                <span className={`text-[0.6rem] font-semibold text-${color}-400 uppercase tracking-wider`}>{label}</span>
+                            </span>
+                        );
+                    })()}
                 </div>
                 <p className="text-sm text-[var(--color-text-secondary)]">An AI agent that manages your treasury autonomously — here's the full picture.</p>
             </motion.div>
@@ -345,25 +370,31 @@ export default function Architecture() {
                 <Expandable title="External Integrations (6 services)" icon={Globe}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {[
-                            { icon: TrendingUp, name: 'Stork Oracle', what: 'Real-time WebSocket + REST price feeds', live: true },
-                            { icon: RefreshCw, name: 'StableFX', what: 'On-chain USDC↔EURC at optimal rates', live: true },
-                            { icon: Database, name: 'USYC (Hashnote)', what: 'Tokenized T-Bill vault ~4.5% APY', live: true },
-                            { icon: Globe, name: 'Circle CCTP V2', what: 'Cross-chain burn→attest→mint bridge', live: true },
-                            { icon: Brain, name: 'Local LLM (Phi-3)', what: 'AI decision engine with confidence scores', live: true },
-                            { icon: Zap, name: 'Circle CPN', what: 'Instant cross-border nanopayments', live: false },
-                        ].map(s => (
+                            { icon: TrendingUp, name: 'Stork Oracle', what: 'Real-time WebSocket + REST price feeds', key: 'stork_oracle' },
+                            { icon: RefreshCw, name: 'StableFX', what: 'On-chain USDC↔EURC at optimal rates', key: 'circle_stablefx' },
+                            { icon: Database, name: 'USYC (Hashnote)', what: 'Tokenized T-Bill vault ~4.5% APY', key: 'usyc_teller' },
+                            { icon: Globe, name: 'Circle CCTP V2', what: 'Cross-chain burn→attest→mint bridge', key: 'cctp_bridge' },
+                            { icon: Brain, name: 'Local LLM (Phi-3)', what: 'AI decision engine with confidence scores', key: 'ollama_ai' },
+                            { icon: Zap, name: 'Circle CPN', what: 'Instant cross-border nanopayments', key: 'cpn' },
+                        ].map(s => {
+                            const live = isLive(s.key);
+                            const loading = live === null;
+                            return (
                             <div key={s.name} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--color-bg-secondary)]">
                                 <s.icon className="w-4 h-4 text-[var(--color-accent)] flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold text-[var(--color-text-primary)]">{s.name}</p>
                                     <p className="text-[0.65rem] text-[var(--color-text-muted)] truncate">{s.what}</p>
                                 </div>
+                                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--color-text-muted)]" /> : (
                                 <span className="relative flex h-2.5 w-2.5">
-                                    {s.live && <span className="arch-status-pulse absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: s.live ? '#4ade80' : '#facc15' }}></span>}
-                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: s.live ? '#22c55e' : '#eab308' }}></span>
+                                    {live && <span className="arch-status-pulse absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: '#4ade80' }}></span>}
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: live ? '#22c55e' : '#ef4444' }}></span>
                                 </span>
+                                )}
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </Expandable>
 
