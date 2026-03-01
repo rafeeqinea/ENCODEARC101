@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ExternalLink, ShieldCheck, Database, Zap, Globe, Cpu, ArrowRight,
@@ -118,9 +118,6 @@ function FlowArrow({ vertical = false }) {
 }
 
 export default function Architecture() {
-    const [tick, setTick] = useState(0)
-    useEffect(() => { const t = setInterval(() => setTick(v => v + 1), 2000); return () => clearInterval(t) }, [])
-
     return (
         <div className="max-w-[1100px] mx-auto space-y-8">
             {/* Inject animation styles */}
@@ -218,8 +215,9 @@ export default function Architecture() {
                             {['Analyze', 'Decide', 'Execute'].map((tag, i) => (
                                 <motion.span
                                     key={tag}
-                                    animate={{ opacity: [0.5, 1, 0.5] }}
-                                    transition={{ duration: 2, delay: i * 0.6, repeat: Infinity }}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.5 + i * 0.15 }}
                                     className="px-2 py-0.5 rounded-full text-[0.55rem] font-medium bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
                                 >{tag}</motion.span>
                             ))}
@@ -286,8 +284,9 @@ export default function Architecture() {
                         ].map((s, i) => (
                             <motion.div
                                 key={s.step}
-                                animate={{ opacity: [0.5, 1, 0.5] }}
-                                transition={{ duration: 2.5, delay: i * 0.5, repeat: Infinity }}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: i * 0.1 }}
                                 className="flex items-start gap-3"
                             >
                                 <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: s.color }}>

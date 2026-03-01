@@ -41,18 +41,18 @@ html {
 
 /* Dark mode — premium liquid glass */
 html.dark {
-  --color-bg-primary: #050505;
-  --color-bg-secondary: rgba(30, 30, 30, 0.4);
-  --color-bg-dark: #000000;
+  --color-bg-primary: #0A0A0F;
+  --color-bg-secondary: rgba(30, 30, 35, 0.5);
+  --color-bg-dark: #050508;
   --color-text-primary: #FAFAFA;
   --color-text-secondary: #A1A1AA;
   --color-text-muted: #71717A;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-light: rgba(255, 255, 255, 0.04);
-  --color-sidebar-bg: rgba(5, 5, 5, 0.65);
+  --color-sidebar-bg: rgba(10, 10, 18, 0.85);
   --color-sidebar-active: rgba(255, 255, 255, 0.06);
   --color-card-shadow: rgba(0, 0, 0, 0.5);
-  --color-surface: rgba(20, 20, 20, 0.5);
+  --color-surface: rgba(20, 20, 28, 0.6);
 }
 
 /* Light mode defaults for new vars */
@@ -542,32 +542,11 @@ html.dark .card:hover {
 /*  ALIVE EFFECTS — Deep glow, breathing, ambient motion     */
 /* ═══════════════════════════════════════════════════════════ */
 
-/* ── Ambient background gradient pulse ── */
-@keyframes ambient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-html.dark body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse 80% 60% at 20% 80%, rgba(249, 115, 22, 0.03) 0%, transparent 50%),
-              radial-gradient(ellipse 60% 80% at 80% 20%, rgba(251, 191, 36, 0.02) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-  animation: ambient-shift 20s ease-in-out infinite;
-  background-size: 200% 200%;
-}
+/* ── Ambient handled by layout orbs, not body::before ── */
 
 /* ── Card breathing border glow ── */
-@keyframes border-breathe {
-  0%, 100% { border-color: rgba(249, 115, 22, 0.06); }
-  50% { border-color: rgba(249, 115, 22, 0.12); }
-}
-
 html.dark .card-flat {
-  animation: border-breathe 4s ease-in-out infinite;
+  border-color: rgba(249, 115, 22, 0.08);
 }
 
 /* ── Deep glow on stat cards ── */
@@ -659,9 +638,7 @@ html.dark .nav-item:hover::after {
   50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.25); }
 }
 
-html.dark [class*="bg-"][class*="success"] {
-  animation: success-glow 2s ease-in-out infinite;
-}
+/* ── Success glow on explicit elements only ── */
 
 /* ── Skeleton loading shimmer ── */
 @keyframes skeleton-wave {
@@ -760,15 +737,7 @@ html.dark .card-flat:hover {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(249, 115, 22, 0.04);
 }
 
-/* ── Stat card entrance stagger ── */
-@keyframes card-enter {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.card {
-  animation: card-enter 0.4s ease-out both;
-}
+/* ── Stat card entrance handled by framer motion ── */
 
 /* ── Sidebar active link glow bar ── */
 html.dark .nav-item.active::after {
@@ -797,10 +766,7 @@ html.dark thead th {
   text-shadow: 0 0 8px rgba(249, 115, 22, 0.15);
 }
 
-/* ── Page content fade-in on all routes ── */
-main {
-  animation: card-enter 0.3s ease-out;
-}
+/* ── Page content fade handled by framer motion ── */
 
 /* ── Status dot universal pulse ── */
 @keyframes dot-pulse {
@@ -810,9 +776,4 @@ main {
 
 .status-dot-live {
   animation: dot-pulse 2s ease-in-out infinite;
-}
-
-/* ── Smoother all transitions ── */
-*, *::before, *::after {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }

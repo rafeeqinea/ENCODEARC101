@@ -19,17 +19,10 @@ export default function DashboardLayout() {
     return (
         <div className="flex min-h-screen bg-[var(--color-bg-primary)] transition-colors duration-200 relative overflow-hidden">
             {/* ── Ambient background ── */}
-            {/* Blurred orbs — same vibe as landing, very subtle */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[-15%] right-[-10%] w-[45%] h-[45%] rounded-full bg-[var(--color-accent)] opacity-[0.025] blur-[140px]" />
-                <div className="absolute bottom-[-20%] left-[-8%] w-[50%] h-[50%] rounded-full bg-[#8B5CF6] opacity-[0.02] blur-[140px]" />
-                <div className="absolute top-[40%] left-[50%] w-[35%] h-[35%] rounded-full bg-[var(--color-success)] opacity-[0.015] blur-[120px]" />
-                {/* Subtle dot grid overlay */}
-                <div className="absolute inset-0" style={{
-                    backgroundImage: `radial-gradient(circle, var(--color-text-muted) 0.5px, transparent 0.5px)`,
-                    backgroundSize: '32px 32px',
-                    opacity: 0.04
-                }} />
+                <div className="absolute top-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-[var(--color-accent)] opacity-[0.06] blur-[100px]" />
+                <div className="absolute bottom-[-15%] left-[-5%] w-[45%] h-[45%] rounded-full bg-[#8B5CF6] opacity-[0.04] blur-[100px]" />
+                <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] rounded-full bg-[#3B82F6] opacity-[0.03] blur-[80px]" />
             </div>
 
             {/* Dark mode particles */}
