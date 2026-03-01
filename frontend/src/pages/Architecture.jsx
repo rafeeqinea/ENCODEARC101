@@ -48,6 +48,10 @@ const ANIM_STYLES = `
 .arch-float { animation: float-emoji 3s ease-in-out infinite; }
 .arch-rotate { animation: rotate-slow 8s linear infinite; }
 .arch-core-ring { animation: core-ring 2.5s ease-out infinite; }
+@keyframes arch-tag-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
 `
 
 /* ── Visual flow diagram nodes ── */
@@ -213,13 +217,11 @@ export default function Architecture() {
                         <p className="text-[0.65rem] text-[var(--color-text-muted)] mt-0.5">Local LLM (Phi-3)</p>
                         <div className="flex justify-center gap-1.5 mt-2.5">
                             {['Analyze', 'Decide', 'Execute'].map((tag, i) => (
-                                <motion.span
+                                <span
                                     key={tag}
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.3, delay: 0.5 + i * 0.15 }}
                                     className="px-2 py-0.5 rounded-full text-[0.55rem] font-medium bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
-                                >{tag}</motion.span>
+                                    style={{ animation: `arch-tag-pulse 2.5s ease-in-out ${i * 0.6}s infinite` }}
+                                >{tag}</span>
                             ))}
                         </div>
                     </motion.div>
@@ -282,12 +284,10 @@ export default function Architecture() {
                             { step: '4', label: 'Execute', desc: 'Send on-chain tx — StableFX swap, USYC deposit/withdraw, or CCTP bridge burn', color: '#F97316' },
                             { step: '5', label: 'Report', desc: 'Log receipt, broadcast via WebSocket, update risk score, queue next cycle', color: '#22C55E' },
                         ].map((s, i) => (
-                            <motion.div
+                            <div
                                 key={s.step}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.3, delay: i * 0.1 }}
                                 className="flex items-start gap-3"
+                                style={{ animation: `arch-tag-pulse 3s ease-in-out ${i * 0.5}s infinite` }}
                             >
                                 <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: s.color }}>
                                     {s.step}
@@ -296,7 +296,7 @@ export default function Architecture() {
                                     <span className="text-sm font-semibold text-[var(--color-text-primary)]">{s.label}</span>
                                     <span className="text-sm text-[var(--color-text-secondary)]"> — {s.desc}</span>
                                 </div>
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
                 </Expandable>

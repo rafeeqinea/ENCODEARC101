@@ -544,9 +544,26 @@ html.dark .card:hover {
 
 /* ── Ambient handled by layout orbs, not body::before ── */
 
-/* ── Card breathing border glow ── */
+/* ── Ambient background gradient (static, no animation = no lag) ── */
+html.dark body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 20% 80%, rgba(249, 115, 22, 0.03) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 80% at 80% 20%, rgba(139, 92, 246, 0.025) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Card breathing border glow (GPU-optimized) ── */
+@keyframes border-breathe {
+  0%, 100% { border-color: rgba(249, 115, 22, 0.06); }
+  50% { border-color: rgba(249, 115, 22, 0.14); }
+}
+
 html.dark .card-flat {
-  border-color: rgba(249, 115, 22, 0.08);
+  animation: border-breathe 4s ease-in-out infinite;
+  will-change: border-color;
 }
 
 /* ── Deep glow on stat cards ── */
@@ -639,6 +656,10 @@ html.dark .nav-item:hover::after {
 }
 
 /* ── Success glow on explicit elements only ── */
+.success-glow {
+  animation: success-glow 2s ease-in-out infinite;
+  will-change: box-shadow;
+}
 
 /* ── Skeleton loading shimmer ── */
 @keyframes skeleton-wave {
