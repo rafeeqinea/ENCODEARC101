@@ -9,18 +9,32 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from .config import ARC_RPC_URL, PRIVATE_KEY, TREASURY_CONTRACT
-from .blockchain import ArcClient
-from .oracle import StorkOracle
-from .strategy import TreasuryStrategy
-from .stablefx import StableFXClient
-from .models import Balance, Action, AgentDecision, Obligation
-from .agent_loop import AgentLoop
-from .seed_data import generate_all_seed_data
-from .forecaster import FXForecaster
-from .risk import RiskAssessor
-from .ai_agent import make_decision_with_ai, API_KEY as AI_ENABLED
-from .cctp import CCTPBridge
+try:
+    from .config import ARC_RPC_URL, PRIVATE_KEY, TREASURY_CONTRACT
+    from .blockchain import ArcClient
+    from .oracle import StorkOracle
+    from .strategy import TreasuryStrategy
+    from .stablefx import StableFXClient
+    from .models import Balance, Action, AgentDecision, Obligation
+    from .agent_loop import AgentLoop
+    from .seed_data import generate_all_seed_data
+    from .forecaster import FXForecaster
+    from .risk import RiskAssessor
+    from .ai_agent import make_decision_with_ai, API_KEY as AI_ENABLED
+    from .cctp import CCTPBridge
+except ImportError:
+    from config import ARC_RPC_URL, PRIVATE_KEY, TREASURY_CONTRACT
+    from blockchain import ArcClient
+    from oracle import StorkOracle
+    from strategy import TreasuryStrategy
+    from stablefx import StableFXClient
+    from models import Balance, Action, AgentDecision, Obligation
+    from agent_loop import AgentLoop
+    from seed_data import generate_all_seed_data
+    from forecaster import FXForecaster
+    from risk import RiskAssessor
+    from ai_agent import make_decision_with_ai, API_KEY as AI_ENABLED
+    from cctp import CCTPBridge
 import random
 from datetime import timedelta
 import io

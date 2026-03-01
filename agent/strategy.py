@@ -2,7 +2,10 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-from .models import Action, ActionType, Balance, OraclePrice, YieldInfo, Obligation
+try:
+    from .models import Action, ActionType, Balance, OraclePrice, YieldInfo, Obligation
+except ImportError:
+    from models import Action, ActionType, Balance, OraclePrice, YieldInfo, Obligation
 
 logger = logging.getLogger(__name__)
 

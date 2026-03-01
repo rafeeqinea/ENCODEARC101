@@ -3,10 +3,16 @@ import logging
 from datetime import datetime
 from typing import List, Callable, Awaitable, Optional, Any
 
-from .blockchain import ArcClient
-from .oracle import StorkOracle
-from .strategy import TreasuryStrategy
-from .models import Balance, Action, AgentDecision, Obligation, OraclePrice, YieldInfo
+try:
+    from .blockchain import ArcClient
+    from .oracle import StorkOracle
+    from .strategy import TreasuryStrategy
+    from .models import Balance, Action, AgentDecision, Obligation, OraclePrice, YieldInfo
+except ImportError:
+    from blockchain import ArcClient
+    from oracle import StorkOracle
+    from strategy import TreasuryStrategy
+    from models import Balance, Action, AgentDecision, Obligation, OraclePrice, YieldInfo
 
 logger = logging.getLogger(__name__)
 

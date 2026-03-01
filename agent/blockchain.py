@@ -6,7 +6,10 @@ from typing import Any, Dict, Optional
 from web3 import AsyncWeb3
 from web3.middleware import ExtraDataToPOAMiddleware
 
-from .config import ARC_RPC_URL, PRIVATE_KEY, TREASURY_CONTRACT, CHAIN_ID, USDC_ADDRESS
+try:
+    from .config import ARC_RPC_URL, PRIVATE_KEY, TREASURY_CONTRACT, CHAIN_ID, USDC_ADDRESS
+except ImportError:
+    from config import ARC_RPC_URL, PRIVATE_KEY, TREASURY_CONTRACT, CHAIN_ID, USDC_ADDRESS
 
 logger = logging.getLogger(__name__)
 

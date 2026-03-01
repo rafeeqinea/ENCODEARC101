@@ -8,7 +8,10 @@ from typing import Any, Dict, Optional
 import httpx
 from websockets import connect as ws_connect
 
-from .config import STORK_API_KEY, STORK_WS_URL
+try:
+    from .config import STORK_API_KEY, STORK_WS_URL
+except ImportError:
+    from config import STORK_API_KEY, STORK_WS_URL
 
 logger = logging.getLogger(__name__)
 

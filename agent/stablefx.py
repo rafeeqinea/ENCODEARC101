@@ -12,7 +12,10 @@ from typing import Optional
 
 import httpx
 
-from .config import STABLEFX_API_KEY, STABLEFX_BASE_URL
+try:
+    from .config import STABLEFX_API_KEY, STABLEFX_BASE_URL
+except ImportError:
+    from config import STABLEFX_API_KEY, STABLEFX_BASE_URL
 
 logger = logging.getLogger(__name__)
 
