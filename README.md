@@ -1,285 +1,126 @@
-<div align="center">
+# ArcTreasury
 
-# ⚡ ArcTreasury
+An autonomous AI agent that manages a Web3 treasury on Arc Testnet. It monitors FX rates, executes swaps, optimizes yield, and handles cross-chain transfers — all without human intervention.
 
-### AI-Powered Autonomous Treasury Management Agent
-
-**Built for the Encode × Arc Enterprise & DeFi Hackathon (Feb 2026)**
-
-[![Solidity](https://img.shields.io/badge/Solidity-0.8.20-363636?logo=solidity)](contracts/)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python)](agent/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](frontend/)
-[![Arc Testnet](https://img.shields.io/badge/Arc_Testnet-Live-F97316)](https://testnet.arcscan.app)
-
-</div>
+Built for the **Encode × Arc Enterprise & DeFi Hackathon** (Feb 2026).
 
 ---
 
-## 🧠 What Is This?
+## How It Works
 
-ArcTreasury is a **fully autonomous AI agent** that manages a Web3 treasury without human intervention. It watches market conditions, thinks through strategy, and executes real on-chain transactions — all in a 30-second loop.
+The agent runs a 30-second loop:
 
-```
-👀 WATCH          🧠 THINK           ⚡ ACT
-Stork Oracle  →   Gemini AI      →   On-chain Tx
-FX Rates          Risk Engine         Smart Contracts
-Obligations       ML Forecaster       CCTP Bridge
-```
+1. **Reads** on-chain balances + Stork oracle prices
+2. **Decides** what to do (swap USDC↔EURC? park idle funds in yield? fund an upcoming payment?)
+3. **Executes** the transaction on-chain through the ArcTreasury smart contract
+4. **Logs** the decision with confidence score, reasoning, and tx hash
 
-**No manual approvals. No multi-sig delays. Just an AI agent managing capital 24/7.**
+No manual approvals. The AI evaluates risk, checks upcoming obligations, and acts.
 
 ---
 
-## 🏆 Bounty Tracks Covered
+## What's Inside
 
-| # | Track | Integration | Status |
-|---|-------|-------------|--------|
-| 1 | **Circle USDC & CCTP** | Cross-chain USDC transfers via CCTP V2 burn→attestation→mint | ✅ |
-| 2 | **Circle Stablecoin FX (StableFX)** | Real-time USDC↔EURC institutional FX routing | ✅ |
-| 3 | **Hashnote USYC** | Tokenized T-Bill yield optimization (4.5% APY) | ✅ |
-| 4 | **Stork Oracle** | Real-time price feeds via REST + WebSocket | ✅ |
-| 5 | **Arc Testnet Deployment** | Full smart contract suite deployed on Arc | ✅ |
-| 🎁 | **Bonus: AI Agent** | Autonomous decision-making with Gemini + local Ollama | ✅ |
+**Backend** — Python/FastAPI running the AI agent loop, strategy engine, risk assessor, and 20+ REST endpoints.
 
----
+**Frontend** — React dashboard with 11 pages: live balances, agent decisions, FX trading, yield tracking, cross-chain bridge, transaction history, contract explorer, and more.
 
-## ✨ Key Features
+**Smart Contracts** — `ArcTreasury.sol` on Arc Testnet with conditional escrow, vesting schedules, batch payouts, and emergency pause. All behind ReentrancyGuard + role-based access.
 
-### 🤖 Autonomous AI Agent
-- **30-second decision loop** — evaluates balances, FX rates, obligations, yield opportunities
-- **Gemini 2.5 Flash** for strategic reasoning with confidence scoring (0.55–0.95 range)
-- **ML Forecaster** predicts FX rate movements for proactive swaps
-- Real on-chain execution via `ArcTreasury.sol` smart contract
-
-### 💱 StableFX Integration
-- Institutional USDC↔EURC swaps at oracle rates
-- 0.015% fee tracking with trade receipts
-- Live rate chart with 1H/6H/24H/7D views
-
-### 🌉 CCTP Cross-Chain Bridge
-- USDC transfers across chains via Circle's CCTP V2
-- Real-time step progress: Burn → Attestation → Mint
-- Transfer history with status tracking
-
-### 📈 Yield Optimization
-- Auto-parks idle USDC into USYC (tokenized T-Bills, ~4.5% APY)
-- Withdraws before payment obligations are due
-- Tracks cumulative yield earned over time
-
-### 🔮 Stork Oracle
-- Real-time EURC/USDC price feeds
-- WebSocket streaming for live rate updates
-- Powers the AI agent's swap decisions
-
-### 🏗️ Smart Contracts
-- **ConditionalEscrow** — lock funds until on-chain conditions are met
-- **VestingSchedule** — linear token vesting with beneficiary claims
-- **BatchPayout** — gas-efficient multi-recipient transfers
-- **Pausable** — emergency circuit breaker
-- **ReentrancyGuard** — flash loan protection on all state changes
-- Full on-chain `TxReceipt` event log for auditability
-
-### 🤖 ArcBot (Local AI Chat)
-- Runs **phi3:mini via Ollama** — zero API tokens consumed
-- Context-aware: knows live balances, risk score, recent decisions
-- Falls back to Gemini cloud if Ollama unavailable
-
-### 🎨 Premium UI
-- **11 pages**: Dashboard, Agent, FX Monitor, Yield, Obligations, Contracts, Cross-Chain, Transactions, Nanopayments, Architecture, Settings
-- Dark mode with deep glow effects, ambient animations, breathing borders
-- Treasury value shimmer, button backglow, chart drop-shadows
-- Fully responsive with Framer Motion transitions
+**AI** — Gemini 2.5 Flash for strategic decisions + local Ollama (phi3:mini) for the chatbot so it doesn't burn API tokens.
 
 ---
 
-## 🏗️ Architecture
+## Bounty Tracks
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    FRONTEND (React 19)                   │
-│  Dashboard │ Agent │ FX │ Yield │ Bridge │ Contracts     │
-│  Vite 7 · Tailwind v4 · Recharts · Framer Motion        │
-└────────────────────────┬────────────────────────────────┘
-                         │ REST + WebSocket
-┌────────────────────────┴────────────────────────────────┐
-│                 BACKEND (FastAPI + Python)                │
-│                                                          │
-│  ┌──────────┐  ┌───────────┐  ┌──────────┐              │
-│  │ AI Agent │  │  Strategy │  │   Risk   │              │
-│  │ (Gemini) │  │  Engine   │  │ Assessor │              │
-│  └────┬─────┘  └─────┬─────┘  └────┬─────┘              │
-│       │              │              │                    │
-│  ┌────┴──────────────┴──────────────┴─────┐              │
-│  │           Agent Loop (30s cycle)        │              │
-│  │  Watch → Think → Act → Record → Sleep  │              │
-│  └────────────────┬───────────────────────┘              │
-│                   │                                      │
-│  ┌────────┐  ┌────┴───┐  ┌─────────┐  ┌──────────┐      │
-│  │ Stork  │  │ Web3   │  │StableFX │  │  CCTP V2 │      │
-│  │ Oracle │  │  RPC   │  │  Client │  │  Bridge  │      │
-│  └────────┘  └────┬───┘  └─────────┘  └──────────┘      │
-└───────────────────┼──────────────────────────────────────┘
-                    │
-┌───────────────────┴──────────────────────────────────────┐
-│              ARC TESTNET (Chain ID: 5042002)              │
-│                                                          │
-│  ArcTreasury.sol   │  MockUSDC  │  MockEURC  │  MockUSYC │
-│  0x624bfC2a...     │  0xe91eEB  │  0x7B7032  │  0x17ae4a │
-└──────────────────────────────────────────────────────────┘
-```
+| Track | What We Built |
+|-------|--------------|
+| Circle USDC & CCTP | Cross-chain USDC transfers via CCTP V2 (burn → attest → mint) |
+| Circle StableFX | USDC↔EURC institutional FX swaps with fee tracking and receipts |
+| Hashnote USYC | Auto-deposit idle USDC into tokenized T-Bills (~4.5% APY), auto-withdraw before payments |
+| Stork Oracle | Real-time price feeds driving the agent's swap decisions |
+| Arc Testnet | Full contract suite deployed and executing real transactions |
+| Bonus: AI Agent | Autonomous decision loop with ML forecasting and confidence scoring |
 
 ---
 
-## 🚀 Quick Start
+## Running It
 
-### Prerequisites
-- **Node.js** 20.19+ or 22.12+
-- **Python** 3.10+
-- **Ollama** (optional, for local AI chatbot)
-- MetaMask with Arc Testnet configured
-
-### 1. Backend
-
+**Backend:**
 ```bash
 cd ArcTreasure
-
-# Install Python dependencies
 pip install -r agent/requirements.txt
-
-# Configure environment
-cd agent
-cp .env.example .env
-# Edit .env with your keys (PRIVATE_KEY, STABLEFX_API_KEY, etc.)
-
-# Start the API server
-cd ..
+# set up agent/.env with your keys (see .env.example)
 python -m uvicorn agent.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 2. Frontend
-
+**Frontend:**
 ```bash
 cd ArcTreasure/frontend
-
-# Install dependencies
 npm install
-
-# Start dev server
 npx vite --port 5173
 ```
 
-### 3. Local AI Chatbot (Optional)
-
+**Local chatbot (optional, saves API tokens):**
 ```bash
-# Install Ollama (one-time)
 winget install Ollama.Ollama
-
-# Pull the model (one-time, ~2.2GB)
 ollama pull phi3:mini
-
-# Ollama auto-starts with Windows — no manual startup needed
+# auto-starts with Windows, no manual launch needed
 ```
 
-### 4. Open the App
-
-1. Go to `http://localhost:5173`
-2. Connect MetaMask (Arc Testnet — Chain ID 5042002)
-3. The AI agent starts its 30-second loop automatically
+Open `localhost:5173`, connect MetaMask to Arc Testnet (chain 5042002), and the agent starts running.
 
 ---
 
-## 📁 Project Structure
-
-```
-ArcTreasure/
-├── agent/                  # Python backend
-│   ├── main.py             # FastAPI app — 20+ endpoints, agent state, WebSocket
-│   ├── agent_loop.py       # Autonomous 30s decision cycle
-│   ├── ai_agent.py         # Gemini AI integration with confidence scoring
-│   ├── blockchain.py       # ArcClient — Web3 contract interactions
-│   ├── strategy.py         # Rule-based + ML-enhanced strategy engine
-│   ├── oracle.py           # Stork price feed (REST + WebSocket)
-│   ├── stablefx.py         # Circle StableFX client
-│   ├── cctp.py             # CCTP V2 cross-chain bridge service
-│   ├── risk.py             # VaR, Sharpe, concentration risk
-│   ├── forecaster.py       # ML time-series FX predictor
-│   ├── seed_data.py        # Realistic demo data generator
-│   └── .env                # API keys (not in git)
-├── contracts/
-│   └── ArcTreasury.sol     # Main vault — escrow, vesting, batch payout, pausable
-├── frontend/
-│   └── src/
-│       ├── pages/          # 11 pages (Dashboard, Agent, FX, Yield, etc.)
-│       ├── components/     # TopBar, Sidebar, ChatWidget, StatCard, etc.
-│       ├── hooks/          # useTreasury, useApi, useCountUp
-│       ├── lib/api.js      # All API calls
-│       └── index.css       # Neon dark mode, glow effects, animations
-├── scripts/
-│   └── deploy.js           # Hardhat deployment script
-└── docs/
-    └── DEV_HANDOFF.md      # Full project state documentation
-```
-
----
-
-## 🔐 Security
-
-- **ReentrancyGuard** on all state-changing contract functions
-- **Pausable** emergency circuit breaker (owner-only)
-- **Role-based access**: Owner → Agent → Beneficiary
-- `.env` never committed to git — all keys loaded via `os.getenv()`
-- `__pycache__` excluded from version control
-- **Route guard** verifies MetaMask `eth_accounts` on every page load
-- **Account change listener** auto-disconnects on wallet switch
-
----
-
-## 🔑 Environment Variables
-
-```env
-PRIVATE_KEY=           # Agent wallet private key
-ARC_RPC_URL=           # https://rpc.testnet.arc.network
-TREASURY_CONTRACT=     # Deployed ArcTreasury address
-USDC_ADDRESS=          # MockUSDC address
-EURC_ADDRESS=          # MockEURC address
-USYC_ADDRESS=          # MockUSYC address
-STABLEFX_API_KEY=      # Circle StableFX API key
-STORK_API_KEY=         # Stork oracle API key
-GEMINI_API_KEY=        # Google Gemini AI key
-```
-
----
-
-## 📜 Deployed Contracts (Arc Testnet)
+## Contracts on Arc Testnet
 
 | Contract | Address |
 |----------|---------|
-| **ArcTreasury** | `0x624bfC2a364C83c42F980F878c2177F76230dd44` |
+| ArcTreasury | `0x624bfC2a364C83c42F980F878c2177F76230dd44` |
 | MockUSDC | `0xe91eEBa8C8D3fD2Aed35319AD106Cf1bf29eAdd6` |
 | MockEURC | `0x7B70323630E887f514A33388B99dd86CA0855E23` |
 | MockUSYC | `0x17ae4a6987d10044340AAbFB4108F77e85313E90` |
 
-🔍 [View on ArcScan](https://testnet.arcscan.app/address/0x624bfC2a364C83c42F980F878c2177F76230dd44)
+[View on ArcScan →](https://testnet.arcscan.app/address/0x624bfC2a364C83c42F980F878c2177F76230dd44)
 
 ---
 
-## 🛠️ Tech Stack
+## Project Structure
 
-| Layer | Technology |
-|-------|-----------|
-| Smart Contracts | Solidity 0.8.20, OpenZeppelin, Hardhat |
-| Backend | Python 3.12, FastAPI, Web3.py, aiohttp |
-| AI / ML | Google Gemini 2.5 Flash, Ollama phi3:mini, scikit-learn |
-| Frontend | React 19, Vite 7, Tailwind CSS v4, Recharts, Framer Motion |
-| Blockchain | Arc Testnet (Chain ID: 5042002) |
-| Oracles | Stork Network (REST + WebSocket) |
-| FX | Circle StableFX API |
-| Bridge | Circle CCTP V2 |
+```
+agent/           Python backend — AI loop, strategy, risk, oracle, FX, bridge
+├── main.py      FastAPI app with all endpoints
+├── agent_loop.py   30s autonomous cycle
+├── ai_agent.py     Gemini integration
+├── blockchain.py   Web3 contract calls
+├── strategy.py     Rule-based + ML strategy
+├── oracle.py       Stork price feeds
+├── stablefx.py     Circle FX client
+├── cctp.py         CCTP V2 bridge
+└── risk.py         VaR, Sharpe, concentration
+
+contracts/       Solidity — escrow, vesting, batch payout, pausable
+frontend/src/    React — 11 pages, dark mode, glow effects, recharts
+```
 
 ---
 
-<div align="center">
+## Env Vars
 
-**Built with 🧠 AI + ☕ caffeine for the Encode × Arc Hackathon**
+```
+PRIVATE_KEY          Agent wallet key
+ARC_RPC_URL          https://rpc.testnet.arc.network
+TREASURY_CONTRACT    Deployed vault address
+USDC_ADDRESS         MockUSDC on Arc
+EURC_ADDRESS         MockEURC on Arc
+USYC_ADDRESS         MockUSYC on Arc
+STABLEFX_API_KEY     Circle StableFX
+STORK_API_KEY        Stork oracle
+GEMINI_API_KEY       Google Gemini
+```
 
-</div>
+---
+
+## Stack
+
+Solidity 0.8.20 · Python 3.12 · FastAPI · Web3.py · React 19 · Vite 7 · Tailwind v4 · Recharts · Framer Motion · Gemini 2.5 Flash · Ollama · Stork Network · Circle CCTP V2 · Circle StableFX · Arc Testnet
