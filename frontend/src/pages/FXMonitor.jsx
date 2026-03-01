@@ -97,7 +97,7 @@ export default function FXMonitor() {
                 amount_in: quote.from?.amount || quoteAmount,
                 amount_out: quote.to?.amount || '0',
                 rate: quote.rate,
-                fee: result?.fee || quote.fee?.amount || '1.50',
+                fee: result?.fee || quote.fee?.amount || (typeof quote.fee === 'string' ? quote.fee : '1.50'),
                 tx_hash: result?.tx_hash || result?.receipt_id || `0x${Math.random().toString(16).slice(2, 10)}`,
                 receipt_id: result?.receipt_id,
                 net_amount: result?.net_amount,
@@ -218,7 +218,7 @@ export default function FXMonitor() {
                                 </div>
                                 <div>
                                     <p className="text-[0.65rem] text-[var(--color-text-muted)] uppercase tracking-wider mb-0.5">Fee</p>
-                                    <p className="font-mono text-sm">{quote.fee?.amount} {quote.fee?.currency}</p>
+                                    <p className="font-mono text-sm">${typeof quote.fee === 'object' ? quote.fee?.amount : quote.fee} {quote.from?.currency || 'USDC'}</p>
                                 </div>
                             </div>
 
