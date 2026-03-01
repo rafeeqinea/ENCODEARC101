@@ -26,23 +26,51 @@ function RequireWallet({ children }) {
 
   useEffect(() => {
     if (!wallet) { setChecked(true); return }
-    // Verify MetaMask still has accounts connected
-    if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' })
-        .then(accs => { setValid(accs.length > 0); setChecked(true) })
-        .catch(() => { setValid(false); setChecked(true) })
 
-      // Listen for disconnect mid-session
+    const verify = async () => {
+      if (!window.ethereum) {
+        setValid(false); setChecked(true); return
+      }
+      try {
+        // eth_accounts is passive — returns connected accounts without popup
+        const accs = await window.ethereum.request({ method: 'eth_accounts' })
+        if (!accs || accs.length === 0) {
+          // No accounts = truly disconnected
+          setValid(false); setChecked(true); return
+        }
+        // Verify the stored wallet matches what MetaMask has
+        const currentAddr = accs[0].toLowerCase()
+        const storedAddr = wallet.toLowerCase()
+        if (currentAddr !== storedAddr) {
+          // Different account or disconnected
+          setValid(false); setChecked(true); return
+        }
+        // Also check we're on the right chain (Arc Testnet = 0x4cef52)
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+        if (chainId !== '0x4cef52') {
+          // Wrong chain — still allow but could warn
+          console.warn('Not on Arc Testnet, chainId:', chainId)
+        }
+        setValid(true); setChecked(true)
+      } catch {
+        setValid(false); setChecked(true)
+      }
+    }
+    verify()
+
+    // Listen for disconnect or account switch mid-session
+    if (window.ethereum) {
       const onAccountsChanged = (accs) => {
         if (!accs || accs.length === 0) {
           sessionStorage.removeItem('arc-wallet')
           setValid(false)
+        } else {
+          // Account switched — update stored wallet
+          sessionStorage.setItem('arc-wallet', accs[0])
         }
       }
       window.ethereum.on('accountsChanged', onAccountsChanged)
       return () => window.ethereum.removeListener('accountsChanged', onAccountsChanged)
-    } else {
-      setValid(false); setChecked(true)
     }
   }, [wallet])
 
