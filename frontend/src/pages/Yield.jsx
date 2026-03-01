@@ -88,7 +88,7 @@ export default function Yield() {
                                 dataKey="timestamp"
                                 tickFormatter={(t) => new Date(t).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                 tick={{ fontSize: 10, fill: '#9CA3AF' }}
-                                axisLine={{ stroke: '#E5E1DB' }}
+                                axisLine={{ stroke: 'var(--color-border)' }}
                                 tickLine={false}
                             />
                             <YAxis
@@ -99,7 +99,7 @@ export default function Yield() {
                                 width={65}
                             />
                             <Tooltip
-                                contentStyle={{ background: '#fff', border: '1px solid #E5E1DB', borderRadius: 12, fontSize: 12 }}
+                                contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, fontSize: 12, color: 'var(--color-text-primary)' }}
                                 labelFormatter={(t) => new Date(t).toLocaleDateString()}
                                 formatter={(v) => [formatCurrency(v), 'Cumulative Yield']}
                             />
