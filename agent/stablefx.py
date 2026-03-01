@@ -60,8 +60,9 @@ class StableFXClient:
                     },
                     timeout=10.0,
                 )
-                if response.status_code == 200:
-                    return response.json()
+                if response.status_code in (200, 201):
+                    result = response.json()
+                    return result.get("data", result)
                 logger.warning(
                     "StableFX quote error %s: %s",
                     response.status_code,
@@ -89,8 +90,9 @@ class StableFXClient:
                     json={"quoteId": quote_id},
                     timeout=10.0,
                 )
-                if response.status_code == 200:
-                    return response.json()
+                if response.status_code in (200, 201):
+                    result = response.json()
+                    return result.get("data", result)
                 return self._mock_trade(quote_id)
             except Exception as exc:
                 logger.warning("StableFX trade error: %s", exc)
@@ -105,11 +107,14 @@ class StableFXClient:
         rate = float(quote.get("rate", 0.9215))
         # Check if the quote came from the real API or mock fallback
         is_mock = str(quote.get("id", "")).startswith("mock-")
+        fee_val = quote.get("fee", "0.15")
+        if isinstance(fee_val, dict):
+            fee_val = fee_val.get("amount", "0.15")
         return {
             "rate": rate,
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "source": "mock" if is_mock or self._mock_mode else "stablefx",
-            "fee": quote.get("fee", {}).get("amount", "0.15"),
+            "fee": str(fee_val),
         }
 
     # ── Mock helpers ────────────────────────────────────────────
