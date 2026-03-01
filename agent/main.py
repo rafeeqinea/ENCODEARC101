@@ -985,6 +985,14 @@ async def api_chat(body: ChatMessage) -> Dict[str, Any]:
         current_fx
     )
 
+    var_95 = risk.get('var', {}).get('var_95', 0)
+    risk_score = risk.get('score', 0)
+    risk_level = risk.get('level', 'unknown')
+    decisions_text = "\n".join([f"- [{d['action']}] {d['reason'][:100]}..." for d in recent_decisions]) if recent_decisions else "None yet"
+    obls_text = "\n".join([f"- {o['recipient']}: {o['currency']} {o['amount']:,.2f} due {o['due_date'][:10]} ({o['status']})" for o in pending_obls]) if pending_obls else "None"
+    yield_earned = yield_store['total_earned']
+    yield_deposited = yield_store['total_deposited']
+
     system_prompt = f"""You are ArcBot — the AI assistant for ArcTreasury, an autonomous AI-powered treasury management system on Arc Testnet.
 
 Current Treasury State:
@@ -994,16 +1002,16 @@ Current Treasury State:
 - Total Value: ~${balances.get('total_usd', 0):,.2f}
 
 FX Rate (EURC/USDC): {current_fx:.4f}
-Risk Score: {risk.get('score', 0)}/100 ({risk.get('level', 'unknown')})
-VaR (95%): ${risk.get('var', {{}}).get('var_95', 0):,.2f}
+Risk Score: {risk_score}/100 ({risk_level})
+VaR (95%): ${var_95:,.2f}
 
 Recent Agent Decisions (last 5):
-{chr(10).join(f"- [{d['action']}] {d['reason'][:100]}..." for d in recent_decisions)}
+{decisions_text}
 
 Pending Obligations:
-{chr(10).join(f"- {o['recipient']}: {o['currency']} {o['amount']:,.2f} due {o['due_date'][:10]} ({o['status']})" for o in pending_obls) if pending_obls else "None"}
+{obls_text}
 
-Yield: ${yield_store['total_earned']:,.2f} earned, ${yield_store['total_deposited']:,.2f} deposited
+Yield: ${yield_earned:,.2f} earned, ${yield_deposited:,.2f} deposited
 
 Answer clearly and concisely. Keep responses under 200 words."""
 
