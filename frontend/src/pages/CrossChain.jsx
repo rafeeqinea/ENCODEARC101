@@ -5,10 +5,10 @@ import { api } from '../lib/api'
 
 const CHAINS = [
     { name: 'Arc Testnet', id: 5042002, status: 'Primary', rpc: 'https://rpc.testnet.arc.network' },
-    { name: 'Ethereum Sepolia', id: 11155111, status: 'USYC Source', rpc: 'https://rpc.sepolia.org' },
+    { name: 'Ethereum Sepolia', id: 11155111, status: 'USYC Source', rpc: 'https://ethereum-sepolia-rpc.publicnode.com' },
     { name: 'Base Sepolia', id: 84532, status: 'CCTP Ready', rpc: 'https://sepolia.base.org' },
     { name: 'Arbitrum Sepolia', id: 421614, status: 'CCTP Ready', rpc: 'https://sepolia-rollup.arbitrum.io/rpc' },
-    { name: 'Polygon', id: 137, status: 'Gateway Ready', rpc: 'https://polygon-rpc.com' },
+    { name: 'Polygon', id: 137, status: 'Gateway Ready', rpc: 'https://polygon-bor-rpc.publicnode.com' },
     { name: 'Avalanche', id: 43114, status: 'Gateway Ready', rpc: 'https://api.avax.network/ext/bc/C/rpc' },
 ]
 
