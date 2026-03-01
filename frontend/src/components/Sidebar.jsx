@@ -39,7 +39,7 @@ export default function Sidebar({ agentStatus, isDemo }) {
     const gasColor = wallet?.balance_usdc > 10 ? 'var(--color-success)' : wallet?.balance_usdc > 5 ? 'var(--color-warning)' : 'var(--color-danger)'
 
     return (
-        <aside className="fixed left-0 top-0 bottom-0 w-[260px] bg-[var(--color-sidebar-bg)] border-r border-[var(--color-border)] flex flex-col z-50 transition-colors duration-200 overflow-y-auto hidden-scrollbar">
+        <aside className="fixed left-0 top-0 bottom-0 w-[260px] bg-[var(--color-sidebar-bg)] backdrop-blur-xl border-r border-[var(--color-border)] flex flex-col z-50 transition-colors duration-200 overflow-y-auto hidden-scrollbar">
             {/* Logo */}
             <div className="px-5 pt-4 pb-3">
                 <div className="flex items-center gap-2.5">
@@ -77,6 +77,7 @@ export default function Sidebar({ agentStatus, isDemo }) {
                                         className="absolute left-0 top-1 bottom-1 w-[3px] rounded-r-full bg-[var(--color-accent)]"
                                         initial={false}
                                         transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                                        style={{ boxShadow: '0 0 8px rgba(249, 115, 22, 0.5), 0 0 20px rgba(249, 115, 22, 0.2)' }}
                                     />
                                 )}
                                 <Icon className="w-[18px] h-[18px] nav-icon" />

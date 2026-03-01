@@ -690,3 +690,129 @@ html.dark *:focus-visible {
 html.dark .recharts-default-tooltip {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 12px rgba(249, 115, 22, 0.08) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  GLOBAL POLISH — smooth scrolling, inputs, transitions     */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* ── Smooth scroll behavior ── */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Custom themed scrollbar (all pages) ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(150, 150, 150, 0.25);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 150, 150, 0.4);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.3);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.25) transparent;
+}
+
+html.dark * {
+  scrollbar-color: rgba(249, 115, 22, 0.15) transparent;
+}
+
+/* ── Input focus glow ── */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1), 0 0 12px rgba(249, 115, 22, 0.05);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* ── Card glass + lift on hover ── */
+.card-flat {
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.3s ease;
+}
+
+.card-flat:hover {
+  transform: translateY(-1px);
+}
+
+html.dark .card-flat:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 20px rgba(249, 115, 22, 0.04);
+}
+
+/* ── Stat card entrance stagger ── */
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  animation: card-enter 0.4s ease-out both;
+}
+
+/* ── Sidebar active link glow bar ── */
+html.dark .nav-item.active::after {
+  height: 70%;
+  background: #F97316;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+  width: 2.5px;
+}
+
+/* ── Select/dropdown style ── */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+/* ── Chart crosshair cursor ── */
+.recharts-responsive-container {
+  cursor: crosshair;
+}
+
+/* ── Table heading uppercase glow ── */
+html.dark thead th {
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.15);
+}
+
+/* ── Page content fade-in on all routes ── */
+main {
+  animation: card-enter 0.3s ease-out;
+}
+
+/* ── Status dot universal pulse ── */
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.status-dot-live {
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+/* ── Smoother all transitions ── */
+*, *::before, *::after {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
