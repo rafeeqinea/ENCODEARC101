@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Settings as SettingsIcon, Globe, Key, Server, CheckCircle2, XCircle, Shield, RefreshCw, ExternalLink, Copy, Check } from 'lucide-react'
+import { Settings as SettingsIcon, Globe, Key, Server, CheckCircle2, XCircle, Shield, RefreshCw, ExternalLink, Copy, Check, Save, Sliders } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { api } from '../lib/api'
 
@@ -24,23 +24,52 @@ function CopyButton({ text }) {
     )
 }
 
+function Toggle({ value, onChange, label }) {
+    return (
+        <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-bg-secondary)]">
+            <span className="text-sm text-[var(--color-text-secondary)]">{label}</span>
+            <button onClick={() => onChange(!value)}
+                className={`relative w-10 h-5 rounded-full transition-colors ${value ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-border)]'}`}>
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${value ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </button>
+        </div>
+    )
+}
+
 export default function SettingsPage() {
     const navigate = useNavigate()
     const [wallet, setWallet] = useState(null)
-    const [status, setStatus] = useState(null)
     const [checking, setChecking] = useState(true)
+    const [settings, setSettings] = useState(null)
+    const [saving, setSaving] = useState(false)
+    const [saved, setSaved] = useState(false)
 
     useEffect(() => {
         async function load() {
             try {
-                const [w, s] = await Promise.all([api.getWallet(), api.getStatus()])
+                const [w, s] = await Promise.all([api.getWallet(), api.getSettings()])
                 setWallet(w)
-                setStatus(s)
+                setSettings(s)
             } catch { }
             setChecking(false)
         }
         load()
     }, [])
+
+    const handleSave = async () => {
+        if (!settings) return
+        setSaving(true)
+        try {
+            await api.updateSettings(settings)
+            setSaved(true)
+            setTimeout(() => setSaved(false), 2000)
+        } catch { }
+        setSaving(false)
+    }
+
+    const updateSetting = (key, value) => {
+        setSettings(prev => ({ ...prev, [key]: value }))
+    }
 
     const contracts = {
         treasury: '0x624bfC2a364C83c42F980F878c2177F76230dd44',
@@ -54,20 +83,93 @@ export default function SettingsPage() {
         { name: 'Circle StableFX', endpoint: 'api-sandbox.circle.com', status: true },
         { name: 'Stork Oracle', endpoint: 'rest.jp.stork-oracle.network', status: true },
         { name: 'Gemini AI', endpoint: 'generativelanguage.googleapis.com', status: true },
+        { name: 'CCTP V2 Bridge', endpoint: 'iris-api-sandbox.circle.com', status: true },
         { name: 'USYC Teller', endpoint: 'Ethereum Sepolia (arch. integrated)', status: true },
         { name: 'Circle CPN', endpoint: 'Conceptual integration', status: null },
     ]
 
     return (
         <div className="max-w-[1100px] mx-auto space-y-6">
-            <div>
-                <h2 className="font-heading text-2xl font-bold text-[var(--color-text-primary)] mb-1">Settings</h2>
-                <p className="text-sm text-[var(--color-text-secondary)]">Network configuration, integrations, and wallet management</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="font-heading text-2xl font-bold text-[var(--color-text-primary)] mb-1">Settings</h2>
+                    <p className="text-sm text-[var(--color-text-secondary)]">Agent parameters, network config, and integrations</p>
+                </div>
+                {settings && (
+                    <button onClick={handleSave} disabled={saving}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                            saved ? 'bg-[var(--color-success)]/20 text-[var(--color-success)] border border-[var(--color-success)]/40' :
+                            'neon-btn bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)]'
+                        }`}>
+                        {saved ? <><Check className="w-4 h-4" /> Saved</> :
+                         saving ? <><RefreshCw className="w-4 h-4 animate-spin" /> Saving...</> :
+                         <><Save className="w-4 h-4" /> Save Settings</>}
+                    </button>
+                )}
             </div>
+
+            {/* Agent Strategy Settings */}
+            {settings && (
+                <motion.div className="card-flat" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="flex items-center gap-2 mb-4">
+                        <Sliders className="w-5 h-5 text-[var(--color-accent)]" />
+                        <h3 className="font-heading text-base font-semibold">Agent Strategy</h3>
+                    </div>
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--color-bg-secondary)]">
+                            <span className="text-sm text-[var(--color-text-secondary)]">Risk Tolerance</span>
+                            <select value={settings.risk_tolerance} onChange={e => updateSetting('risk_tolerance', e.target.value)}
+                                className="bg-[var(--color-bg-tertiary)] text-sm text-[var(--color-text-primary)] font-semibold px-3 py-1 rounded-lg border border-[var(--color-border)]">
+                                <option value="conservative">Conservative</option>
+                                <option value="moderate">Moderate</option>
+                                <option value="aggressive">Aggressive</option>
+                            </select>
+                        </div>
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--color-bg-secondary)]">
+                            <span className="text-sm text-[var(--color-text-secondary)]">Rebalance Threshold (%)</span>
+                            <input type="number" step="0.5" min="1" max="20"
+                                value={settings.rebalance_threshold} onChange={e => updateSetting('rebalance_threshold', parseFloat(e.target.value))}
+                                className="w-20 bg-[var(--color-bg-tertiary)] text-sm text-[var(--color-text-primary)] font-mono font-semibold px-3 py-1 rounded-lg border border-[var(--color-border)] text-right" />
+                        </div>
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--color-bg-secondary)]">
+                            <span className="text-sm text-[var(--color-text-secondary)]">Max Single Trade ($)</span>
+                            <input type="number" step="1000" min="1000" max="1000000"
+                                value={settings.max_single_trade} onChange={e => updateSetting('max_single_trade', parseFloat(e.target.value))}
+                                className="w-28 bg-[var(--color-bg-tertiary)] text-sm text-[var(--color-text-primary)] font-mono font-semibold px-3 py-1 rounded-lg border border-[var(--color-border)] text-right" />
+                        </div>
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--color-bg-secondary)]">
+                            <span className="text-sm text-[var(--color-text-secondary)]">Min Liquidity Buffer ($)</span>
+                            <input type="number" step="5000" min="5000" max="500000"
+                                value={settings.min_liquidity_buffer} onChange={e => updateSetting('min_liquidity_buffer', parseFloat(e.target.value))}
+                                className="w-28 bg-[var(--color-bg-tertiary)] text-sm text-[var(--color-text-primary)] font-mono font-semibold px-3 py-1 rounded-lg border border-[var(--color-border)] text-right" />
+                        </div>
+                        <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--color-bg-secondary)]">
+                            <span className="text-sm text-[var(--color-text-secondary)]">Agent Cycle Interval (sec)</span>
+                            <input type="number" step="5" min="10" max="300"
+                                value={settings.agent_interval} onChange={e => updateSetting('agent_interval', parseInt(e.target.value))}
+                                className="w-20 bg-[var(--color-bg-tertiary)] text-sm text-[var(--color-text-primary)] font-mono font-semibold px-3 py-1 rounded-lg border border-[var(--color-border)] text-right" />
+                        </div>
+                        <Toggle value={settings.auto_yield} onChange={v => updateSetting('auto_yield', v)} label="Auto Yield Optimization" />
+                        <Toggle value={settings.auto_fx} onChange={v => updateSetting('auto_fx', v)} label="Auto FX Hedging" />
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Notifications */}
+            {settings && (
+                <motion.div className="card-flat" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.03 }}>
+                    <h3 className="font-heading text-base font-semibold mb-4">Notifications</h3>
+                    <div className="space-y-3">
+                        <Toggle value={settings.notification_decisions} onChange={v => updateSetting('notification_decisions', v)} label="Agent Decision Alerts" />
+                        <Toggle value={settings.notification_obligations} onChange={v => updateSetting('notification_obligations', v)} label="Obligation Due Alerts" />
+                        <Toggle value={settings.notification_risk} onChange={v => updateSetting('notification_risk', v)} label="Risk Threshold Alerts" />
+                    </div>
+                </motion.div>
+            )}
 
             {/* Network & Wallet */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <motion.div className="card-flat" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}>
+                <motion.div className="card-flat" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
                     <div className="flex items-center gap-2 mb-4">
                         <Globe className="w-5 h-5 text-[var(--color-accent)]" />
                         <h3 className="font-heading text-base font-semibold">Network</h3>
@@ -90,17 +192,13 @@ export default function SettingsPage() {
                             <span className="font-mono text-sm font-semibold">USDC (native)</span>
                         </div>
                         <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--color-bg-secondary)]">
-                            <span className="text-sm text-[var(--color-text-secondary)]">Consensus</span>
-                            <span className="font-mono text-sm font-semibold">Malachite BFT</span>
-                        </div>
-                        <div className="flex justify-between items-center p-3 rounded-xl bg-[var(--color-bg-secondary)]">
                             <span className="text-sm text-[var(--color-text-secondary)]">Finality</span>
                             <span className="text-sm font-semibold text-[var(--color-success)]">&lt;500ms</span>
                         </div>
                     </div>
                 </motion.div>
 
-                <motion.div className="card-flat" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+                <motion.div className="card-flat" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
                     <div className="flex items-center gap-2 mb-4">
                         <Shield className="w-5 h-5 text-[var(--color-accent)]" />
                         <h3 className="font-heading text-base font-semibold">Agent Wallet</h3>

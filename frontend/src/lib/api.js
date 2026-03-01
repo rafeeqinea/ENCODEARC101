@@ -37,8 +37,27 @@ export const api = {
     getWallet: () => get('/api/wallet'),
     getStatus: () => get('/api/agent'),
 
-    // Transactions
+    // Transactions & Receipts
     getTransactions: () => get('/api/transactions'),
+    getReceipt: (id) => get(`/api/receipts/${id}`),
+    getReceiptText: (id) => get(`/api/receipts/${id}/text`),
+
+    // Bridge (CCTP)
+    getBridgeRoutes: () => get('/api/bridge/routes'),
+    getBridgeTransfers: () => get('/api/bridge/transfers'),
+    getBridgeTransfer: (id) => get(`/api/bridge/transfer/${id}`),
+    initiateBridgeTransfer: (data) => post('/api/bridge/transfer', data),
+
+    // Settings
+    getSettings: () => get('/api/settings'),
+    updateSettings: (data) => fetch(`/api/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    }).then(r => r.json()),
+
+    // Collateral
+    getCollateral: () => get('/api/collateral'),
 
     // ML Forecast & Risk
     getForecast: () => get('/api/forecast'),

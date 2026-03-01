@@ -20,8 +20,10 @@ from .seed_data import generate_all_seed_data
 from .forecaster import FXForecaster
 from .risk import RiskAssessor
 from .ai_agent import make_decision_with_ai, API_KEY as AI_ENABLED
+from .cctp import CCTPBridge
 import random
 from datetime import timedelta
+import io
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,6 +45,7 @@ oracle: Optional[StorkOracle] = None
 strategy: Optional[TreasuryStrategy] = None
 agent_loop: Optional[AgentLoop] = None
 stablefx_client: Optional[StableFXClient] = None
+cctp_bridge: Optional[CCTPBridge] = None
 blockchain_available: bool = False
 
 forecaster = FXForecaster()
@@ -66,6 +69,18 @@ fx_swaps: List[Dict[str, Any]] = []
 tx_log: List[Dict[str, Any]] = []  # unified transaction log
 connected_clients: List[WebSocket] = []
 seed_balances: Dict[str, float] = {}
+settings_store: Dict[str, Any] = {
+    "risk_tolerance": "moderate",
+    "rebalance_threshold": 5.0,
+    "auto_yield": True,
+    "auto_fx": True,
+    "max_single_trade": 100000,
+    "min_liquidity_buffer": 25000,
+    "notification_decisions": True,
+    "notification_obligations": True,
+    "notification_risk": True,
+    "agent_interval": 30,
+}
 yield_store: Dict[str, float] = {
     "total_deposited": 150000.0,
     "total_earned": 0.0
@@ -101,13 +116,14 @@ def _is_placeholder_env() -> bool:
 # ── Startup ──────────────────────────────────────────────────────────────────
 @app.on_event("startup")
 async def startup_event() -> None:
-    global arc_client, oracle, strategy, agent_loop, stablefx_client, blockchain_available
+    global arc_client, oracle, strategy, agent_loop, stablefx_client, blockchain_available, cctp_bridge
     global obligations_store, decision_history, yield_history, fx_history, fx_swaps
     global seed_balances, _obligation_counter, agent_state
 
     stablefx_client = StableFXClient()
     oracle = StorkOracle(stablefx_client=stablefx_client)
     strategy = TreasuryStrategy()
+    cctp_bridge = CCTPBridge()
 
     # Try blockchain connection
     if not _is_placeholder_env():
@@ -145,8 +161,8 @@ async def startup_event() -> None:
             arc_client=loop_arc_client,
             oracle=oracle,
             strategy=strategy,
-            obligations_store=[],
-            decision_history=[],
+            obligations_store=obligations_store,
+            decision_history=decision_history,
             broadcast_callback=broadcast_decision,
             forecaster=forecaster,
         )
@@ -795,8 +811,161 @@ async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  /api/chat ROUTE — Gemini-powered treasury chatbot
+#  /api/bridge/* ROUTES — CCTP cross-chain bridge
 # ═══════════════════════════════════════════════════════════════════════════
+
+class BridgeTransfer(BaseModel):
+    from_chain: int = 5042002
+    to_chain: int = 11155111
+    amount: float = 1000.0
+    recipient: str = ""
+
+@app.get("/api/bridge/routes")
+async def api_bridge_routes() -> List[Dict[str, Any]]:
+    """Return supported CCTP bridge routes."""
+    if cctp_bridge:
+        return await cctp_bridge.get_supported_routes()
+    return []
+
+@app.post("/api/bridge/transfer")
+async def api_bridge_transfer(body: BridgeTransfer) -> Dict[str, Any]:
+    """Initiate a cross-chain USDC transfer via CCTP V2."""
+    if not cctp_bridge:
+        return {"error": "Bridge not initialized"}
+    recipient = body.recipient or (arc_client.account.address if arc_client else "0x0")
+    transfer = await cctp_bridge.initiate_transfer(
+        from_chain=body.from_chain,
+        to_chain=body.to_chain,
+        amount=body.amount,
+        recipient=recipient,
+    )
+    # Log to tx_log
+    tx_log.append({
+        "id": transfer["id"],
+        "timestamp": transfer["created_at"],
+        "action": "bridge",
+        "token": "USDC",
+        "amount": body.amount,
+        "fee": transfer["fee"],
+        "recipient": recipient[:10] + "...",
+        "tx_hash": transfer["burn_tx"],
+        "on_chain": True,
+        "source": "CCTP V2",
+    })
+    return transfer
+
+@app.get("/api/bridge/transfers")
+async def api_bridge_transfers() -> List[Dict[str, Any]]:
+    """Return all bridge transfer history."""
+    if cctp_bridge:
+        return cctp_bridge.get_transfers()
+    return []
+
+@app.get("/api/bridge/transfer/{transfer_id}")
+async def api_bridge_transfer_status(transfer_id: str) -> Dict[str, Any]:
+    """Get status of a specific bridge transfer."""
+    if cctp_bridge:
+        t = cctp_bridge.get_transfer(transfer_id)
+        if t:
+            return t
+    raise HTTPException(status_code=404, detail="Transfer not found")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  /api/settings ROUTES — User preferences persistence
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/settings")
+async def api_get_settings() -> Dict[str, Any]:
+    """Return current settings."""
+    return settings_store
+
+@app.put("/api/settings")
+async def api_update_settings(body: Dict[str, Any]) -> Dict[str, Any]:
+    """Update settings. Only known keys are accepted."""
+    valid_keys = set(settings_store.keys())
+    updated = []
+    for k, v in body.items():
+        if k in valid_keys:
+            settings_store[k] = v
+            updated.append(k)
+    # Apply settings to strategy if relevant
+    if "min_liquidity_buffer" in body:
+        strategy.LIQUIDITY_BUFFER = float(body["min_liquidity_buffer"])
+    if "rebalance_threshold" in body:
+        strategy.usdc_threshold = int(float(body["rebalance_threshold"]) * 1000)
+    return {"status": "updated", "updated_keys": updated, "settings": settings_store}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  /api/receipts ROUTE — Transaction receipt generation
+# ═══════════════════════════════════════════════════════════════════════════
+
+@app.get("/api/receipts/{receipt_id}")
+async def api_get_receipt(receipt_id: str) -> Dict[str, Any]:
+    """Generate a detailed receipt for a transaction."""
+    # Search in tx_log
+    tx = next((t for t in tx_log if t.get("id") == receipt_id), None)
+    # Search in decision_history
+    if not tx:
+        tx = next((d for d in decision_history if d.get("id") == receipt_id), None)
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    return {
+        "receipt_id": receipt_id,
+        "timestamp": tx.get("timestamp", ""),
+        "action": tx.get("action", ""),
+        "token": tx.get("token", ""),
+        "amount": tx.get("amount", 0),
+        "fee": tx.get("fee", 0),
+        "net_amount": tx.get("amount", 0) - tx.get("fee", 0),
+        "tx_hash": tx.get("tx_hash", ""),
+        "on_chain": tx.get("on_chain", False),
+        "recipient": tx.get("recipient", "Treasury"),
+        "source": tx.get("source", "agent"),
+        "reason": tx.get("reason", ""),
+        "confidence": tx.get("confidence", 0),
+        "snapshot": tx.get("snapshot"),
+        "network": "Arc Testnet (Chain ID: 5042002)",
+        "explorer_url": f"https://testnet.arcscan.app/tx/{tx.get('tx_hash', '')}",
+        "treasury_contract": TREASURY_CONTRACT or "0x624bfC2a364C83c42F980F878c2177F76230dd44",
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+    }
+
+@app.get("/api/receipts/{receipt_id}/text")
+async def api_receipt_text(receipt_id: str) -> JSONResponse:
+    """Generate a plain-text receipt for download."""
+    receipt = await api_get_receipt(receipt_id)
+    lines = [
+        "═══════════════════════════════════════════════",
+        "          ARCTREASURY — TRANSACTION RECEIPT",
+        "═══════════════════════════════════════════════",
+        f"  Receipt ID:    {receipt['receipt_id']}",
+        f"  Timestamp:     {receipt['timestamp']}",
+        f"  Action:        {receipt['action']}",
+        f"  Token:         {receipt['token']}",
+        f"  Amount:        ${receipt['amount']:,.2f}",
+        f"  Fee:           ${receipt['fee']:,.4f}",
+        f"  Net Amount:    ${receipt['net_amount']:,.2f}",
+        f"  Tx Hash:       {receipt['tx_hash']}",
+        f"  On-Chain:      {'Yes' if receipt['on_chain'] else 'Simulated'}",
+        f"  Recipient:     {receipt['recipient']}",
+        f"  Source:        {receipt['source']}",
+        "───────────────────────────────────────────────",
+        f"  Network:       {receipt['network']}",
+        f"  Explorer:      {receipt['explorer_url']}",
+        f"  Contract:      {receipt['treasury_contract']}",
+        f"  Generated:     {receipt['generated_at']}",
+        "═══════════════════════════════════════════════",
+    ]
+    if receipt.get("reason"):
+        lines.insert(-1, f"  Reason:        {receipt['reason']}")
+    
+    return JSONResponse(
+        content={"text": "\n".join(lines), "filename": f"receipt_{receipt_id}.txt"},
+        headers={"Content-Type": "application/json"}
+    )
 
 class ChatMessage(BaseModel):
     message: str

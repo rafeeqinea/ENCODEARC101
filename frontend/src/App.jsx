@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import DashboardLayout from './layouts/DashboardLayout'
@@ -17,6 +17,42 @@ const Nanopayments = lazy(() => import('./pages/Nanopayments'))
 const Transactions = lazy(() => import('./pages/Transactions'))
 const SettingsPage = lazy(() => import('./pages/Settings'))
 const Landing = lazy(() => import('./pages/Landing'))
+
+function RequireWallet({ children }) {
+  const wallet = sessionStorage.getItem('arc-wallet')
+  const location = useLocation()
+  const [checked, setChecked] = useState(false)
+  const [valid, setValid] = useState(false)
+
+  useEffect(() => {
+    if (!wallet) { setChecked(true); return }
+    // Verify MetaMask still has accounts connected
+    if (window.ethereum) {
+      window.ethereum.request({ method: 'eth_accounts' })
+        .then(accs => { setValid(accs.length > 0); setChecked(true) })
+        .catch(() => { setValid(false); setChecked(true) })
+
+      // Listen for disconnect mid-session
+      const onAccountsChanged = (accs) => {
+        if (!accs || accs.length === 0) {
+          sessionStorage.removeItem('arc-wallet')
+          setValid(false)
+        }
+      }
+      window.ethereum.on('accountsChanged', onAccountsChanged)
+      return () => window.ethereum.removeListener('accountsChanged', onAccountsChanged)
+    } else {
+      setValid(false); setChecked(true)
+    }
+  }, [wallet])
+
+  if (!checked) return null
+  if (!wallet || !valid) {
+    sessionStorage.removeItem('arc-wallet')
+    return <Navigate to="/" state={{ from: location }} replace />
+  }
+  return children
+}
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(() => !sessionStorage.getItem('arc-loaded'))
@@ -53,7 +89,7 @@ export default function App() {
             }>
               <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<RequireWallet><DashboardLayout /></RequireWallet>}>
                   <Route index element={<Dashboard />} />
                   <Route path="agent" element={<Agent />} />
                   <Route path="fx" element={<FXMonitor />} />

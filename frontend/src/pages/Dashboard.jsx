@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useOutletContext, Link } from 'react-router-dom'
 import { DollarSign, Euro, Landmark, ArrowRight } from 'lucide-react'
-import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, PieChart, Pie, Cell } from 'recharts'
 import StatCard from '../components/StatCard'
 import DecisionItem from '../components/DecisionItem'
 import DecisionDetailModal from '../components/DecisionDetailModal'
@@ -54,6 +54,59 @@ export default function Dashboard() {
 
             {/* Grid layout for major cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Asset Allocation Pie */}
+                <div className="card-flat flex flex-col">
+                    <h3 className="font-heading text-base font-semibold mb-4 text-[var(--color-text-primary)]">Asset Allocation</h3>
+                    <div className="flex-1 flex flex-col items-center justify-center">
+                        <div className="h-44 w-44">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={[
+                                            { name: 'USDC', value: bal.usdc || 0 },
+                                            { name: 'EURC', value: (bal.eurc || 0) / 0.92 },
+                                            { name: 'USYC', value: bal.usyc || 0 },
+                                        ].filter(d => d.value > 0)}
+                                        cx="50%" cy="50%"
+                                        innerRadius={50} outerRadius={72}
+                                        paddingAngle={3}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        <Cell fill="#3B82F6" />
+                                        <Cell fill="#8B5CF6" />
+                                        <Cell fill="#22C55E" />
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 12, fontSize: 12 }}
+                                        formatter={(v) => [formatCurrency(v), '']}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="flex gap-4 mt-3">
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]" /><span className="text-xs text-[var(--color-text-muted)]">USDC</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]" /><span className="text-xs text-[var(--color-text-muted)]">EURC</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" /><span className="text-xs text-[var(--color-text-muted)]">USYC</span></div>
+                        </div>
+                        <div className="mt-3 w-full space-y-1.5">
+                            {[
+                                { label: 'USDC', val: bal.usdc || 0, pct: bal.total_usd ? ((bal.usdc || 0) / bal.total_usd * 100) : 0, color: '#3B82F6' },
+                                { label: 'EURC', val: (bal.eurc || 0) / 0.92, pct: bal.total_usd ? (((bal.eurc || 0) / 0.92) / bal.total_usd * 100) : 0, color: '#8B5CF6' },
+                                { label: 'USYC', val: bal.usyc || 0, pct: bal.total_usd ? ((bal.usyc || 0) / bal.total_usd * 100) : 0, color: '#22C55E' },
+                            ].map(a => (
+                                <div key={a.label} className="flex items-center gap-2">
+                                    <span className="text-xs text-[var(--color-text-muted)] w-10">{a.label}</span>
+                                    <div className="flex-1 h-1.5 bg-[var(--color-border-light)] rounded-full overflow-hidden">
+                                        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${a.pct}%`, backgroundColor: a.color }} />
+                                    </div>
+                                    <span className="text-xs font-mono text-[var(--color-text-secondary)] w-10 text-right">{a.pct.toFixed(0)}%</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Risk Score */}
                 <div className="card-flat flex flex-col">
                     <h3 className="font-heading text-base font-semibold mb-4 text-[var(--color-text-primary)]">Risk Score</h3>

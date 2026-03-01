@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Wallet, ShieldAlert, Activity, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ethers } from 'ethers';
+import ArcLogo from '../components/ArcLogo';
 
 const FeatureCard = ({ icon: Icon, title, desc, delay }) => (
     <motion.div
@@ -87,11 +88,7 @@ export default function Landing() {
             {/* Basic Nav */}
             <nav className="w-full px-8 py-6 flex items-center justify-between border-b border-[var(--color-border)]/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[var(--color-accent)] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 text-black" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                    </div>
+                    <ArcLogo size={40} />
                     <span className="text-xl font-bold tracking-tight text-[var(--color-text)]">ArcTreasury</span>
                 </div>
                 <div className="text-sm font-medium text-[var(--color-text-muted)] bg-[var(--color-bg-secondary)] px-3 py-1.5 rounded-full border border-[var(--color-border)]">

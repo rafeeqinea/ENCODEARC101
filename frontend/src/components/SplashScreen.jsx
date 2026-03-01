@@ -6,7 +6,7 @@ import ArcLogo from './ArcLogo'
 const STATUS_ITEMS = [
     { loading: 'Connecting to Arc Testnet...', done: 'Connected', delay: 1.5 },
     { loading: 'Loading StableFX rates...', done: 'Live', delay: 1.9 },
-    { loading: 'Initializing AI Agent...', done: 'Active (47 decisions)', delay: 2.3 },
+    { loading: 'Initializing AI Agent...', done: 'Active', delay: 2.3 },
 ]
 
 function TypewriterText({ text, startDelay = 0 }) {
