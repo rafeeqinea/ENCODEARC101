@@ -142,9 +142,14 @@ const FeaturePill = ({ icon: Icon, text, delay }) => (
 
 export default function Landing() {
     const navigate = useNavigate();
+    const [phase, setPhase] = useState('intro'); // 'intro' | 'connect'
     const [isConnecting, setIsConnecting] = useState(false);
     const [address, setAddress] = useState(null);
     const [error, setError] = useState(null);
+
+    const handleEnter = () => {
+        setPhase('connect');
+    };
 
     const connectWallet = async () => {
         setIsConnecting(true);
@@ -196,164 +201,230 @@ export default function Landing() {
     };
 
     return (
-        <div className="h-screen bg-[#050505] flex flex-col relative overflow-hidden">
+        <div className="h-screen bg-[#050505] relative overflow-hidden">
             <style>{LANDING_PARTICLES}</style>
-            <GridBackground />
-            <FloatingParticles />
 
-            {/* Nav */}
-            <nav className="w-full px-8 py-5 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 z-50 bg-[rgba(5,5,5,0.7)]">
-                <div className="flex items-center gap-3">
-                    <ArcLogo size={36} />
-                    <span className="text-lg font-bold tracking-tight text-white">ArcTreasury</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                        <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
-                        <span className="text-xs font-mono text-[#22C55E]">Arc Testnet</span>
-                    </div>
-                    <a href="https://github.com/rafeeqinea/ENCODEARC101" target="_blank" rel="noopener noreferrer"
-                        className="text-xs text-zinc-500 hover:text-[#F97316] transition-colors font-mono">
-                        GitHub ↗
-                    </a>
-                </div>
-            </nav>
+            <AnimatePresence mode="wait">
+                {phase === 'intro' ? (
+                    /* ═══════ PHASE 1: Cinematic splash ═══════ */
+                    <motion.div
+                        key="intro"
+                        className="h-full flex flex-col items-center justify-center relative cursor-pointer"
+                        onClick={handleEnter}
+                        exit={{ opacity: 0, scale: 1.05 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        {/* Ambient glow */}
+                        <div className="absolute w-[500px] h-[500px] rounded-full opacity-20"
+                            style={{ background: 'radial-gradient(circle, rgba(249,115,22,0.4) 0%, transparent 70%)' }} />
 
-            {/* Hero — split layout */}
-            <main className="flex-1 flex items-center justify-center px-8 md:px-16 relative z-10 min-h-0">
-                <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16 max-w-6xl w-full">
+                        {/* Rotating rings */}
+                        <div className="absolute w-[280px] h-[280px] rounded-full border border-dashed border-[rgba(249,115,22,0.15)]"
+                            style={{ animation: 'arch-rotate 20s linear infinite', willChange: 'transform' }} />
+                        <div className="absolute w-[340px] h-[340px] rounded-full border border-[rgba(249,115,22,0.08)]"
+                            style={{ animation: 'arch-rotate 30s linear infinite reverse', willChange: 'transform' }} />
 
-                    {/* Left: text + CTA */}
-                    <div className="flex-1 flex flex-col items-start">
-                        {/* Badge */}
+                        {/* Logo */}
                         <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="inline-flex items-center gap-2 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-3 py-1.5 rounded-full mb-4"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                            className="relative z-10 mb-8"
                         >
-                            <Zap className="w-3.5 h-3.5" />
-                            Encode × Arc Hackathon
+                            <ArcLogo size={100} />
                         </motion.div>
 
-                        {/* Headline */}
+                        {/* Title */}
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.1 }}
-                            className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[0.95] mb-4"
+                            transition={{ duration: 0.8, delay: 0.4 }}
+                            className="relative z-10 text-4xl md:text-5xl font-bold tracking-tight text-white mb-2"
                         >
-                            <span className="text-white">Your Treasury</span>
-                            <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] via-[#FBBF24] to-[#F97316]"
-                                style={{
-                                    backgroundSize: '200% auto',
-                                    animation: 'shimmer 4s linear infinite',
-                                    willChange: 'background-position',
-                                }}>
-                                Runs Itself.
-                            </span>
+                            ArcTreasury
                         </motion.h1>
 
-                        {/* Subtitle */}
+                        {/* Tagline */}
                         <motion.p
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.2 }}
-                            className="text-sm md:text-base text-zinc-400 max-w-md mb-6 leading-relaxed"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.6, delay: 0.7 }}
+                            className="relative z-10 text-sm text-zinc-500 tracking-[0.3em] uppercase mb-12"
                         >
-                            An autonomous AI agent that manages stablecoins, optimizes yield,
-                            hedges FX risk, and executes payouts — all settled on-chain, every 30 seconds.
+                            AI-Powered Autonomous Treasury Agent
                         </motion.p>
 
-                        {/* CTA Button */}
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.4, delay: 0.35 }}
-                            className="mb-6"
+                        {/* Enter button */}
+                        <motion.button
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 1.0 }}
+                            onClick={handleEnter}
+                            className="relative z-10 flex items-center gap-2 px-8 py-3 rounded-full border border-[rgba(249,115,22,0.3)] bg-[rgba(249,115,22,0.08)] text-[#F97316] text-sm font-semibold uppercase tracking-widest hover:bg-[rgba(249,115,22,0.15)] hover:border-[rgba(249,115,22,0.5)] transition-all duration-300 group"
                         >
-                            <button
-                                onClick={connectWallet}
-                                disabled={isConnecting || address}
-                                className={`relative group overflow-hidden rounded-xl px-8 py-4 font-semibold text-base transition-all duration-300 ${
-                                    address
-                                        ? 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30'
-                                        : 'bg-gradient-to-r from-[#F97316] to-[#FBBF24] text-white hover:scale-[1.03] active:scale-[0.98]'
-                                }`}
-                                style={!address ? { animation: 'glow-pulse 3s ease-in-out infinite', willChange: 'box-shadow' } : {}}
-                            >
-                                {!address && !isConnecting && (
-                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                                        style={{ animation: 'shimmer 3s linear infinite', backgroundSize: '200% auto', willChange: 'background-position' }} />
-                                )}
-                                <div className="flex items-center gap-3 relative z-10">
-                                    {address ? (
-                                        <>
-                                            <CheckCircle2 className="w-5 h-5" />
-                                            Connected: {address}
-                                        </>
-                                    ) : isConnecting ? (
-                                        <>
-                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                            Connecting to Arc...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Wallet className="w-5 h-5" />
-                                            Launch Dashboard
-                                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                        </>
-                                    )}
-                                </div>
-                            </button>
-                            {error && <p className="mt-3 text-red-400 text-sm font-medium">{error}</p>}
-                        </motion.div>
+                            Enter
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </motion.button>
 
-                        {/* Feature pills — 2x2 grid */}
-                        <div className="grid grid-cols-2 gap-2 w-full max-w-md">
-                            <FeaturePill icon={Bot} text="AI Agent — 30s loop" delay={0.5} />
-                            <FeaturePill icon={Activity} text="Circle StableFX" delay={0.6} />
-                            <FeaturePill icon={TrendingUp} text="USYC — 4.5% APY" delay={0.7} />
-                            <FeaturePill icon={Globe} text="CCTP V2 Bridge" delay={0.8} />
-                        </div>
-                    </div>
-
-                    {/* Right: solar system */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.3 }}
-                        className="flex-shrink-0"
-                    >
-                        <HeroVisual />
+                        {/* Bottom hint */}
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 1.5 }}
+                            className="absolute bottom-8 text-[0.6rem] text-zinc-700 tracking-widest uppercase"
+                        >
+                            Click anywhere to continue
+                        </motion.p>
                     </motion.div>
 
-                </div>
-            </main>
+                ) : (
+                    /* ═══════ PHASE 2: Wallet connect ═══════ */
+                    <motion.div
+                        key="connect"
+                        className="h-full flex flex-col"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        <GridBackground />
+                        <FloatingParticles />
 
-            {/* Bottom stats */}
-            <div className="w-full border-t border-white/5 bg-[rgba(5,5,5,0.8)] backdrop-blur-md">
-                <div className="max-w-5xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6">
-                    {[
-                        { label: 'Blockchain', value: 'Arc Testnet', accent: true },
-                        { label: 'Contracts', value: '4 Deployed' },
-                        { label: 'Integrations', value: '6 Live' },
-                        { label: 'Finality', value: '< 500ms' },
-                    ].map((stat, i) => (
-                        <motion.div
-                            key={stat.label}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 1.0 + i * 0.08 }}
-                            className="text-center"
-                        >
-                            <p className={`font-mono text-base font-bold ${stat.accent ? 'text-[#F97316]' : 'text-white'}`}>{stat.value}</p>
-                            <p className="text-[0.65rem] text-zinc-600 mt-1 uppercase tracking-wider">{stat.label}</p>
-                        </motion.div>
-                    ))}
-                </div>
-            </div>
+                        {/* Nav */}
+                        <nav className="w-full px-8 py-5 flex items-center justify-between border-b border-white/5 backdrop-blur-md sticky top-0 z-50 bg-[rgba(5,5,5,0.7)]">
+                            <div className="flex items-center gap-3">
+                                <ArcLogo size={36} />
+                                <span className="text-lg font-bold tracking-tight text-white">ArcTreasury</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                    <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse" />
+                                    <span className="text-xs font-mono text-[#22C55E]">Arc Testnet</span>
+                                </div>
+                                <a href="https://github.com/rafeeqinea/ENCODEARC101" target="_blank" rel="noopener noreferrer"
+                                    className="text-xs text-zinc-500 hover:text-[#F97316] transition-colors font-mono">
+                                    GitHub ↗
+                                </a>
+                            </div>
+                        </nav>
+
+                        {/* Hero — split layout */}
+                        <main className="flex-1 flex items-center justify-center px-8 md:px-16 relative z-10 min-h-0">
+                            <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16 max-w-6xl w-full">
+
+                                {/* Left: text + CTA */}
+                                <div className="flex-1 flex flex-col items-start">
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="inline-flex items-center gap-2 text-[0.6rem] font-bold uppercase tracking-[0.2em] text-[#F97316] bg-[#F97316]/10 border border-[#F97316]/20 px-3 py-1.5 rounded-full mb-4"
+                                    >
+                                        <Zap className="w-3.5 h-3.5" />
+                                        Encode × Arc Hackathon
+                                    </motion.div>
+
+                                    <motion.h1
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.6, delay: 0.1 }}
+                                        className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[0.95] mb-4"
+                                    >
+                                        <span className="text-white">Your Treasury</span>
+                                        <br />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F97316] via-[#FBBF24] to-[#F97316]"
+                                            style={{ backgroundSize: '200% auto', animation: 'shimmer 4s linear infinite', willChange: 'background-position' }}>
+                                            Runs Itself.
+                                        </span>
+                                    </motion.h1>
+
+                                    <motion.p
+                                        initial={{ opacity: 0, y: 15 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.5, delay: 0.2 }}
+                                        className="text-sm md:text-base text-zinc-400 max-w-md mb-6 leading-relaxed"
+                                    >
+                                        An autonomous AI agent that manages stablecoins, optimizes yield,
+                                        hedges FX risk, and executes payouts — all settled on-chain, every 30 seconds.
+                                    </motion.p>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ duration: 0.4, delay: 0.35 }}
+                                        className="mb-6"
+                                    >
+                                        <button
+                                            onClick={connectWallet}
+                                            disabled={isConnecting || address}
+                                            className={`relative group overflow-hidden rounded-xl px-8 py-4 font-semibold text-base transition-all duration-300 ${
+                                                address
+                                                    ? 'bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/30'
+                                                    : 'bg-gradient-to-r from-[#F97316] to-[#FBBF24] text-white hover:scale-[1.03] active:scale-[0.98]'
+                                            }`}
+                                            style={!address ? { animation: 'glow-pulse 3s ease-in-out infinite', willChange: 'box-shadow' } : {}}
+                                        >
+                                            {!address && !isConnecting && (
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                                    style={{ animation: 'shimmer 3s linear infinite', backgroundSize: '200% auto', willChange: 'background-position' }} />
+                                            )}
+                                            <div className="flex items-center gap-3 relative z-10">
+                                                {address ? (
+                                                    <><CheckCircle2 className="w-5 h-5" />Connected: {address}</>
+                                                ) : isConnecting ? (
+                                                    <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Connecting to Arc...</>
+                                                ) : (
+                                                    <><Wallet className="w-5 h-5" />Launch Dashboard<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
+                                                )}
+                                            </div>
+                                        </button>
+                                        {error && <p className="mt-3 text-red-400 text-sm font-medium">{error}</p>}
+                                    </motion.div>
+
+                                    <div className="grid grid-cols-2 gap-2 w-full max-w-md">
+                                        <FeaturePill icon={Bot} text="AI Agent — 30s loop" delay={0.5} />
+                                        <FeaturePill icon={Activity} text="Circle StableFX" delay={0.6} />
+                                        <FeaturePill icon={TrendingUp} text="USYC — 4.5% APY" delay={0.7} />
+                                        <FeaturePill icon={Globe} text="CCTP V2 Bridge" delay={0.8} />
+                                    </div>
+                                </div>
+
+                                {/* Right: solar system */}
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.8, delay: 0.3 }}
+                                    className="flex-shrink-0"
+                                >
+                                    <HeroVisual />
+                                </motion.div>
+                            </div>
+                        </main>
+
+                        {/* Bottom stats */}
+                        <div className="w-full border-t border-white/5 bg-[rgba(5,5,5,0.8)] backdrop-blur-md">
+                            <div className="max-w-5xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6">
+                                {[
+                                    { label: 'Blockchain', value: 'Arc Testnet', accent: true },
+                                    { label: 'Contracts', value: '4 Deployed' },
+                                    { label: 'Integrations', value: '6 Live' },
+                                    { label: 'Finality', value: '< 500ms' },
+                                ].map((stat, i) => (
+                                    <motion.div
+                                        key={stat.label}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.3 + i * 0.08 }}
+                                        className="text-center"
+                                    >
+                                        <p className={`font-mono text-base font-bold ${stat.accent ? 'text-[#F97316]' : 'text-white'}`}>{stat.value}</p>
+                                        <p className="text-[0.65rem] text-zinc-600 mt-1 uppercase tracking-wider">{stat.label}</p>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
