@@ -83,15 +83,17 @@ export default function FXMonitor() {
             })
             setTradeStatus('completed')
 
-            // Add to local swap history for instant UI update
+            // Add to local swap history with fee and receipt
             setLocalSwaps(prev => [{
                 timestamp: new Date().toISOString(),
                 direction: quoteDirection,
                 amount_in: quote.from?.amount || quoteAmount,
                 amount_out: quote.to?.amount || '0',
                 rate: quote.rate,
-                fee: quote.fee?.amount || '1.50',
-                tx_hash: result?.tx_hash || `0x${Math.random().toString(16).slice(2, 10)}`,
+                fee: result?.fee || quote.fee?.amount || '1.50',
+                tx_hash: result?.tx_hash || result?.receipt_id || `0x${Math.random().toString(16).slice(2, 10)}`,
+                receipt_id: result?.receipt_id,
+                net_amount: result?.net_amount,
                 source: "Circle StableFX"
             }, ...prev])
 

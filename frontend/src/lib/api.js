@@ -37,6 +37,9 @@ export const api = {
     getWallet: () => get('/api/wallet'),
     getStatus: () => get('/api/agent'),
 
+    // Transactions
+    getTransactions: () => get('/api/transactions'),
+
     // ML Forecast & Risk
     getForecast: () => get('/api/forecast'),
     getRisk: () => get('/api/risk'),

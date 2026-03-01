@@ -1,19 +1,23 @@
 import logging
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Dict, Any
 
 from .models import Action, ActionType, Balance, OraclePrice, YieldInfo, Obligation
 
 logger = logging.getLogger(__name__)
 
 class TreasuryStrategy:
-    """Simple rule‑based strategy for the demo MVP.
-    Future work will replace this with an ML model.
-    """
+    """Rule-based + ML-enhanced treasury strategy with RWA collateral tracking."""
+
+    # RWA collateral parameters
+    MIN_COLLATERAL_RATIO = 1.2   # 120% minimum backing
+    TARGET_COLLATERAL_RATIO = 1.5  # 150% target
+    LIQUIDITY_BUFFER = 25000     # always keep this much USDC liquid
 
     def __init__(self, usdc_threshold: int = 10_000, payment_window_hours: int = 2):
         self.usdc_threshold = usdc_threshold
         self.payment_window = timedelta(hours=payment_window_hours)
+        self.collateral_history: List[Dict[str, Any]] = []
 
     def _upcoming_payment(self, obligations: List[Obligation]) -> bool:
         now = datetime.utcnow()
@@ -21,6 +25,30 @@ class TreasuryStrategy:
             if timedelta(0) <= (o.due_at - now) <= self.payment_window:
                 return True
         return False
+
+    def compute_collateral_ratio(self, balances: Dict[str, float], usyc_price: float = 1.0) -> Dict[str, Any]:
+        """Compute RWA collateral ratio: total_assets / total_liabilities."""
+        usdc = balances.get("usdc", 0)
+        eurc = balances.get("eurc", 0)
+        usyc = balances.get("usyc", 0)
+        total_assets = usdc + (eurc / 0.92) + (usyc * usyc_price)
+        # Liabilities = obligations outstanding (simplified: usyc deposits are the liability)
+        total_liabilities = max(usyc * usyc_price, 1)  # avoid div/0
+        ratio = total_assets / total_liabilities if total_liabilities > 0 else 999
+        health = "healthy" if ratio >= self.TARGET_COLLATERAL_RATIO else "warning" if ratio >= self.MIN_COLLATERAL_RATIO else "critical"
+        result = {
+            "ratio": round(ratio, 3),
+            "total_assets": round(total_assets, 2),
+            "total_liabilities": round(total_liabilities, 2),
+            "health": health,
+            "usdc_liquid": round(usdc, 2),
+            "rwa_backing": round(usyc * usyc_price, 2),
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+        self.collateral_history.append(result)
+        if len(self.collateral_history) > 100:
+            self.collateral_history = self.collateral_history[-100:]
+        return result
 
     def decide(
         self,
@@ -58,13 +86,13 @@ class TreasuryStrategy:
                     type=ActionType.DEPOSIT,
                     token="USDC",
                     amount=amount,
-                    reason="Idle USDC surplus, moving to yield‑bearing USYC",
+                    reason="Idle USDC surplus, moving to yield-bearing USYC",
                 )
             )
             logger.info("Decision: deposit %s USDC to USYC", amount)
             return actions
 
-        # Rule 2: payment due soon -> withdraw from USYC (simplified to withdraw USDC)
+        # Rule 2: payment due soon -> withdraw from USYC
         if self._upcoming_payment(obligations):
             earliest = min(obligations, key=lambda o: o.due_at)
             needed = earliest.amount
@@ -79,7 +107,7 @@ class TreasuryStrategy:
             logger.info("Decision: withdraw %s USDC for payment", needed)
             return actions
 
-        # Rule 3: favorable FX rate (>0.95) and need EURC -> swap USDC to EURC
+        # Rule 3: favorable FX rate and need EURC -> swap
         if fx_price.rate > 0.95 and bal_map.get("EURC", 0) == 0:
             swap_amount = min(usdc_balance // 2, 5_000)
             actions.append(

@@ -14,6 +14,7 @@ const Architecture = lazy(() => import('./pages/Architecture'))
 const Contracts = lazy(() => import('./pages/Contracts'))
 const CrossChain = lazy(() => import('./pages/CrossChain'))
 const Nanopayments = lazy(() => import('./pages/Nanopayments'))
+const Transactions = lazy(() => import('./pages/Transactions'))
 const SettingsPage = lazy(() => import('./pages/Settings'))
 const Landing = lazy(() => import('./pages/Landing'))
 
@@ -61,6 +62,7 @@ export default function App() {
                   <Route path="contracts" element={<Contracts />} />
                   <Route path="crosschain" element={<CrossChain />} />
                   <Route path="nanopayments" element={<Nanopayments />} />
+                  <Route path="transactions" element={<Transactions />} />
                   <Route path="architecture" element={<Architecture />} />
                   <Route path="settings" element={<SettingsPage />} />
                 </Route>

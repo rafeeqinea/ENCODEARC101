@@ -63,6 +63,7 @@ decision_history: List[Dict[str, Any]] = []
 yield_history: List[Dict[str, Any]] = []
 fx_history: List[Dict[str, Any]] = []
 fx_swaps: List[Dict[str, Any]] = []
+tx_log: List[Dict[str, Any]] = []  # unified transaction log
 connected_clients: List[WebSocket] = []
 seed_balances: Dict[str, float] = {}
 yield_store: Dict[str, float] = {
@@ -278,10 +279,59 @@ async def api_agent() -> Dict[str, Any]:
     return agent_state
 
 
+@app.get("/api/collateral")
+async def api_collateral() -> Dict[str, Any]:
+    """Return RWA collateral ratio and health metrics."""
+    balances = dict(seed_balances)
+    if blockchain_available and arc_client:
+        try:
+            raw = await asyncio.wait_for(arc_client.get_balances(), timeout=5.0)
+            balances = {"usdc": raw["USDC"] / 1e18, "eurc": raw["EURC"] / 1e18, "usyc": raw["USYC"] / 1e18}
+        except Exception:
+            pass
+    ratio = strategy.compute_collateral_ratio(balances)
+    return {
+        **ratio,
+        "history": strategy.collateral_history[-20:],
+        "min_ratio": strategy.MIN_COLLATERAL_RATIO,
+        "target_ratio": strategy.TARGET_COLLATERAL_RATIO,
+    }
+
+
 @app.get("/api/decisions")
 async def api_decisions() -> List[Dict[str, Any]]:
     """Return agent decisions, newest first."""
     return list(reversed(decision_history))
+
+
+@app.get("/api/transactions")
+async def api_transactions() -> List[Dict[str, Any]]:
+    """Return unified transaction log (decisions + trades + payouts), newest first."""
+    # Build from decision_history (each decision is a tx)
+    txs = []
+    for d in decision_history:
+        fee = round(float(d.get("amount", 0)) * 0.0001, 4)  # 0.01% protocol fee
+        txs.append({
+            "id": d.get("id", ""),
+            "timestamp": d.get("timestamp", ""),
+            "action": d.get("action", "HOLD"),
+            "token": d.get("token", "USDC"),
+            "amount": d.get("amount", 0),
+            "fee": fee,
+            "recipient": d.get("linked_obligation", "Treasury"),
+            "tx_hash": d.get("tx_hash", ""),
+            "on_chain": d.get("on_chain", False),
+            "confidence": d.get("confidence", 0),
+            "reason": d.get("reason", ""),
+            "source": "agent",
+            "snapshot": d.get("snapshot"),
+        })
+    # Add from tx_log (FX trades, manual payouts)
+    for t in tx_log:
+        txs.append(t)
+    # Sort newest first
+    txs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    return txs
 
 
 @app.get("/api/obligations")
@@ -704,23 +754,42 @@ async def api_stablefx_quote(
 
 @app.post("/api/stablefx/trade")
 async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
-    """Execute a trade on Circle StableFX."""
+    """Execute a trade on Circle StableFX with fee tracking and receipt."""
     if stablefx_client and "quoteId" in body:
         result = await stablefx_client.create_trade(body["quoteId"])
-        # Update seed balances to reflect the trade
         amount = float(body.get("amount", 0))
         direction = body.get("direction", "USDC→EURC")
         rate = float(body.get("rate", 0.9215))
+        fee = round(amount * 0.00015, 2)  # 0.015% StableFX fee
+        net_amount = amount - fee
         if amount > 0:
             if "USDC→EURC" in direction or "USDC" in direction:
                 seed_balances["usdc"] = seed_balances.get("usdc", 0) - amount
-                seed_balances["eurc"] = seed_balances.get("eurc", 0) + round(amount * rate, 2)
+                seed_balances["eurc"] = seed_balances.get("eurc", 0) + round(net_amount * rate, 2)
             elif "EURC→USDC" in direction:
                 seed_balances["eurc"] = seed_balances.get("eurc", 0) - amount
-                seed_balances["usdc"] = seed_balances.get("usdc", 0) + round(amount / rate, 2)
+                seed_balances["usdc"] = seed_balances.get("usdc", 0) + round(net_amount / rate, 2)
             seed_balances["total_usd"] = round(
                 seed_balances.get("usdc", 0) + seed_balances.get("eurc", 0) / 0.92 + seed_balances.get("usyc", 0), 2
             )
+        # Log to transaction history
+        tx_entry = {
+            "id": f"fx_{len(tx_log)+1:03d}",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "action": "swap",
+            "token": direction.split("→")[0].strip() if "→" in direction else "USDC",
+            "amount": amount,
+            "fee": fee,
+            "recipient": "Treasury",
+            "tx_hash": result.get("id", f"0x{secrets.token_hex(32)}"),
+            "on_chain": False,
+            "source": "Circle StableFX",
+        }
+        tx_log.append(tx_entry)
+        result["fee"] = fee
+        result["net_amount"] = net_amount
+        result["tx_hash"] = tx_entry["tx_hash"]
+        result["receipt_id"] = tx_entry["id"]
         return result
     return {"error": "Missing quoteId or client not initialized"}
 

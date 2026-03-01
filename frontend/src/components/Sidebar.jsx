@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Bot, ArrowLeftRight, TrendingUp, ClipboardList, Boxes, FileCode2, Globe, Banknote, Zap, Fuel, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, Bot, ArrowLeftRight, TrendingUp, ClipboardList, Boxes, FileCode2, Globe, Banknote, Receipt, Zap, Fuel, Settings, LogOut } from 'lucide-react'
 import { motion } from 'framer-motion'
 import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
     { to: '/dashboard/contracts', icon: FileCode2, label: 'Contracts' },
     { to: '/dashboard/crosschain', icon: Globe, label: 'Cross-Chain' },
     { to: '/dashboard/nanopayments', icon: Banknote, label: 'Nanopayments' },
+    { to: '/dashboard/transactions', icon: Receipt, label: 'Tx History' },
     { to: '/dashboard/architecture', icon: Boxes, label: 'Architecture' },
 ]
 
@@ -31,7 +32,7 @@ export default function Sidebar({ agentStatus, isDemo }) {
             } catch { /* ignore */ }
         }
         fetchWallet()
-        const timer = setInterval(fetchWallet, 30000)
+        const timer = setInterval(fetchWallet, 60000)
         return () => clearInterval(timer)
     }, [])
 

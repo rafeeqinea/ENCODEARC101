@@ -13,6 +13,7 @@ const PAGE_TITLES = {
     '/dashboard/contracts': 'Contracts',
     '/dashboard/crosschain': 'Cross-Chain',
     '/dashboard/nanopayments': 'Nanopayments',
+    '/dashboard/transactions': 'Tx History',
     '/dashboard/architecture': 'Architecture',
     '/dashboard/settings': 'Settings',
 }
