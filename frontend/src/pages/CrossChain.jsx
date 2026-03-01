@@ -8,8 +8,8 @@ const CHAINS = [
     { name: 'Ethereum Sepolia', id: 11155111, status: 'USYC Source', active: true },
     { name: 'Base Sepolia', id: 84532, status: 'CCTP Ready', active: true },
     { name: 'Arbitrum Sepolia', id: 421614, status: 'CCTP Ready', active: true },
-    { name: 'Polygon', id: 137, status: 'Gateway Ready', active: false },
-    { name: 'Avalanche', id: 43114, status: 'Gateway Ready', active: false },
+    { name: 'Polygon', id: 137, status: 'Gateway Ready', active: true },
+    { name: 'Avalanche', id: 43114, status: 'Gateway Ready', active: true },
 ]
 
 const STATUS_COLORS = {

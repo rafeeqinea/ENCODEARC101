@@ -27,7 +27,7 @@ const NANO_FEATURES = [
 const CPN_FLOW = [
     { step: 'Quote', desc: 'Agent requests FX quote from StableFX for cross-border obligation', status: 'active' },
     { step: 'Create', desc: 'Payment intent created with amount, currency, and recipient address', status: 'active' },
-    { step: 'Route', desc: 'CPN selects optimal BFI (Beneficiary Financial Institution) path', status: 'conceptual' },
+    { step: 'Route', desc: 'CPN selects optimal BFI (Beneficiary Financial Institution) path', status: 'active' },
     { step: 'Settle', desc: 'USDC transferred on-chain via ArcTreasury.withdraw()', status: 'active' },
     { step: 'Confirm', desc: 'WebSocket broadcasts payment confirmation to dashboard', status: 'active' },
 ]
