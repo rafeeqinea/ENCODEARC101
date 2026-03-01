@@ -41,18 +41,18 @@ html {
 
 /* Dark mode — premium liquid glass */
 html.dark {
-  --color-bg-primary: #0A0A0F;
-  --color-bg-secondary: rgba(30, 30, 35, 0.5);
-  --color-bg-dark: #050508;
+  --color-bg-primary: #050505;
+  --color-bg-secondary: rgba(30, 30, 30, 0.4);
+  --color-bg-dark: #000000;
   --color-text-primary: #FAFAFA;
   --color-text-secondary: #A1A1AA;
   --color-text-muted: #71717A;
   --color-border: rgba(255, 255, 255, 0.08);
   --color-border-light: rgba(255, 255, 255, 0.04);
-  --color-sidebar-bg: rgba(10, 10, 18, 0.85);
+  --color-sidebar-bg: rgba(5, 5, 5, 0.65);
   --color-sidebar-active: rgba(255, 255, 255, 0.06);
   --color-card-shadow: rgba(0, 0, 0, 0.5);
-  --color-surface: rgba(20, 20, 28, 0.6);
+  --color-surface: rgba(20, 20, 20, 0.5);
 }
 
 /* Light mode defaults for new vars */
@@ -550,7 +550,7 @@ html.dark body::before {
   position: fixed;
   inset: 0;
   background: radial-gradient(ellipse 80% 60% at 20% 80%, rgba(249, 115, 22, 0.03) 0%, transparent 50%),
-              radial-gradient(ellipse 60% 80% at 80% 20%, rgba(139, 92, 246, 0.025) 0%, transparent 50%);
+              radial-gradient(ellipse 60% 80% at 80% 20%, rgba(249, 115, 22, 0.02) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }

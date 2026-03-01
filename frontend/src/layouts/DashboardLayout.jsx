@@ -18,11 +18,10 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex min-h-screen bg-[var(--color-bg-primary)] transition-colors duration-200 relative overflow-hidden">
-            {/* ── Ambient background ── */}
+            {/* ── Ambient background — orange only ── */}
             <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div className="absolute top-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-[var(--color-accent)] opacity-[0.06] blur-[100px]" />
-                <div className="absolute bottom-[-15%] left-[-5%] w-[45%] h-[45%] rounded-full bg-[#8B5CF6] opacity-[0.04] blur-[100px]" />
-                <div className="absolute top-[30%] left-[40%] w-[30%] h-[30%] rounded-full bg-[#3B82F6] opacity-[0.03] blur-[80px]" />
+                <div className="absolute top-[-10%] right-[-5%] w-[50%] h-[50%] rounded-full bg-[#F97316] opacity-[0.04] blur-[100px]" />
+                <div className="absolute bottom-[-15%] left-[-5%] w-[45%] h-[45%] rounded-full bg-[#F97316] opacity-[0.03] blur-[100px]" />
             </div>
 
             {/* Dark mode particles */}
