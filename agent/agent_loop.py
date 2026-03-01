@@ -85,15 +85,19 @@ class AgentLoop:
             )
 
             # 4. execute actions
+            from .config import USDC_ADDRESS, EURC_ADDRESS, USYC_ADDRESS
+            TOKEN_MAP = {"USDC": USDC_ADDRESS, "EURC": EURC_ADDRESS, "USYC": USYC_ADDRESS}
+            
             for act in actions:
                 tx_hash: Optional[str] = None
+                token_addr = TOKEN_MAP.get(act.token, act.token)
                 try:
                     if act.type.value == "deposit":
-                        tx_hash = await self.arc.deposit(act.token, act.amount)
+                        tx_hash = await self.arc.deposit(token_addr, act.amount)
                     elif act.type.value == "withdraw":
-                        tx_hash = await self.arc.withdraw(act.token, act.amount)
+                        tx_hash = await self.arc.withdraw(token_addr, act.amount)
                     elif act.type.value == "swap":
-                        tx_hash = await self.arc.swap_fx(act.token, "EURC", act.amount)
+                        tx_hash = await self.arc.swap_fx(token_addr, TOKEN_MAP.get("EURC", "EURC"), act.amount)
                 except Exception as tx_exc:
                     logger.warning("Transaction failed for %s: %s", act.type, tx_exc)
                 logger.info("Executed %s action, tx=%s", act.type, tx_hash)

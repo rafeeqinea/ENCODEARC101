@@ -5,12 +5,16 @@ import React, { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 
 const PAGE_TITLES = {
-    '/': 'Dashboard',
-    '/agent': 'Agent',
-    '/fx': 'FX Monitor',
-    '/yield': 'Yield',
-    '/obligations': 'Obligations',
-    '/architecture': 'Architecture',
+    '/dashboard': 'Dashboard',
+    '/dashboard/agent': 'Agent',
+    '/dashboard/fx': 'FX Monitor',
+    '/dashboard/yield': 'Yield',
+    '/dashboard/obligations': 'Obligations',
+    '/dashboard/contracts': 'Contracts',
+    '/dashboard/crosschain': 'Cross-Chain',
+    '/dashboard/nanopayments': 'Nanopayments',
+    '/dashboard/architecture': 'Architecture',
+    '/dashboard/settings': 'Settings',
 }
 
 export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleDark }) {
@@ -72,7 +76,7 @@ export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleD
                     <div className="flex items-center gap-2 px-3 py-1 bg-[var(--color-bg)] rounded-full border border-[var(--color-border)] shadow-inner">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                         <span className="text-xs font-mono font-semibold text-[var(--color-text-secondary)]">
-                            {connectedWallet}
+                            {connectedWallet.length > 10 ? `${connectedWallet.slice(0, 6)}...${connectedWallet.slice(-4)}` : connectedWallet}
                         </span>
                     </div>
                 )}

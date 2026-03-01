@@ -44,7 +44,7 @@ export default function Landing() {
             try {
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x4CEA12' }], // 5042002 in hex
+                    params: [{ chainId: '0x4cef52' }], // 5042002
                 });
             } catch (switchErr) {
                 // Chain not added — add it
@@ -52,7 +52,7 @@ export default function Landing() {
                     await window.ethereum.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
-                            chainId: '0x4CEA12',
+                            chainId: '0x4cef52',
                             chainName: 'Arc Testnet',
                             nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 18 },
                             rpcUrls: ['https://rpc.testnet.arc.network'],
