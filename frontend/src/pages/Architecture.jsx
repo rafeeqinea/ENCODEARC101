@@ -10,7 +10,7 @@ import {
 const DIAGRAM_NODES = [
     { id: 'oracle', label: 'Stork Oracle', sub: 'Live FX + Yield Prices', icon: TrendingUp, color: '#3B82F6', col: 0 },
     { id: 'stablefx', label: 'StableFX', sub: 'USDC ↔ EURC Quotes', icon: RefreshCw, color: '#8B5CF6', col: 0 },
-    { id: 'agent', label: 'AI Agent', sub: 'Gemini 2.5 Flash', icon: Brain, color: '#F97316', col: 1, hero: true },
+    { id: 'agent', label: 'AI Agent', sub: 'Local LLM (Phi-3)', icon: Brain, color: '#F97316', col: 1, hero: true },
     { id: 'vault', label: 'Treasury Vault', sub: 'Solidity on Arc', icon: Lock, color: '#22C55E', col: 2 },
     { id: 'cctp', label: 'CCTP V2 Bridge', sub: 'Cross-chain Burns', icon: Globe, color: '#06B6D4', col: 2 },
 ]
@@ -150,7 +150,7 @@ export default function Architecture() {
                             <Brain className="w-6 h-6 text-[var(--color-accent)]" />
                         </div>
                         <p className="text-base font-bold text-[var(--color-text-primary)]">AI Agent</p>
-                        <p className="text-[0.65rem] text-[var(--color-text-muted)] mt-0.5">Gemini 2.5 Flash</p>
+                        <p className="text-[0.65rem] text-[var(--color-text-muted)] mt-0.5">Local LLM (Phi-3)</p>
                         <div className="flex justify-center gap-1.5 mt-2.5">
                             {['Analyze', 'Decide', 'Execute'].map(tag => (
                                 <span key={tag} className="px-2 py-0.5 rounded-full text-[0.55rem] font-medium bg-[var(--color-accent)]/10 text-[var(--color-accent)]">{tag}</span>
@@ -201,7 +201,7 @@ export default function Architecture() {
                     <div className="space-y-3">
                         {[
                             { step: '1', label: 'Ingest', desc: 'Read live FX rates from Stork Oracle + on-chain balances from Treasury vault', color: '#3B82F6' },
-                            { step: '2', label: 'Analyze', desc: 'Feed treasury state, rates, and pending obligations to Gemini AI', color: '#8B5CF6' },
+                            { step: '2', label: 'Analyze', desc: 'Feed treasury state, rates, and pending obligations to local AI engine', color: '#8B5CF6' },
                             { step: '3', label: 'Validate', desc: 'Check risk thresholds — max trade size, liquidity buffer, VaR limits, collateral ratios', color: '#F59E0B' },
                             { step: '4', label: 'Execute', desc: 'Send on-chain tx — StableFX swap, USYC deposit/withdraw, or CCTP bridge burn', color: '#F97316' },
                             { step: '5', label: 'Report', desc: 'Log receipt, broadcast via WebSocket, update risk score, queue next cycle', color: '#22C55E' },
@@ -268,7 +268,7 @@ export default function Architecture() {
                             { icon: RefreshCw, name: 'StableFX', what: 'On-chain USDC↔EURC at optimal rates', status: '🟢' },
                             { icon: Database, name: 'USYC (Hashnote)', what: 'Tokenized T-Bill vault ~4.5% APY', status: '🟢' },
                             { icon: Globe, name: 'Circle CCTP V2', what: 'Cross-chain burn→attest→mint bridge', status: '🟢' },
-                            { icon: Brain, name: 'Gemini 2.5 Flash', what: 'AI decision engine with confidence scores', status: '🟢' },
+                            { icon: Brain, name: 'Local LLM (Phi-3)', what: 'AI decision engine with confidence scores', status: '🟢' },
                             { icon: Zap, name: 'Circle CPN', what: 'Instant cross-border nanopayments', status: '🟡' },
                         ].map(s => (
                             <div key={s.name} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--color-bg-secondary)]">
@@ -308,7 +308,7 @@ export default function Architecture() {
             <div>
                 <h3 className="font-heading text-base font-semibold mb-3 text-[var(--color-text-primary)]">Built With</h3>
                 <div className="flex flex-wrap gap-2">
-                    {['Solidity', 'Python', 'FastAPI', 'React', 'Vite', 'Gemini AI', 'Stork Oracle', 'StableFX', 'USYC', 'CCTP V2', 'Circle CPN', 'Arc Testnet', 'ethers.js', 'web3.py', 'Framer Motion', 'Recharts'].map((t, i) => (
+                    {['Solidity', 'Python', 'FastAPI', 'React', 'Vite', 'Ollama AI', 'Stork Oracle', 'StableFX', 'USYC', 'CCTP V2', 'Circle CPN', 'Arc Testnet', 'ethers.js', 'web3.py', 'Framer Motion', 'Recharts'].map((t, i) => (
                         <motion.span
                             key={t}
                             initial={{ opacity: 0, scale: 0.9 }}

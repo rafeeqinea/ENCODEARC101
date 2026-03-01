@@ -143,7 +143,7 @@ export default function DecisionDetailModal({ decision, open, onClose }) {
                                 <div className="flex items-center gap-2 mb-2">
                                     <Brain className="w-4 h-4 text-[var(--color-accent)]" />
                                     <span className="text-xs font-semibold text-[var(--color-accent)] uppercase tracking-wider">
-                                        {snap.balance_source === 'seed' ? 'Agent' : 'Gemini AI'} Reasoning
+                                        {snap.balance_source === 'seed' ? 'Agent' : 'AI'} Reasoning
                                     </span>
                                 </div>
                                 <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
@@ -239,7 +239,7 @@ export default function DecisionDetailModal({ decision, open, onClose }) {
                             <div className="flex items-center justify-center gap-2 pt-2">
                                 <Zap className="w-3 h-3 text-[var(--color-accent)]" />
                                 <span className="text-[0.6rem] text-[var(--color-text-muted)]">
-                                    Powered by {decision.metadata?.source === 'ai-agent-v1' ? 'Gemini 2.5 Flash' : 'ArcTreasury Agent'} on Arc Testnet
+                                    Powered by {decision.metadata?.source === 'ai-agent-v1' ? 'Local LLM' : 'ArcTreasury Agent'} on Arc Testnet
                                 </span>
                             </div>
                         </div>

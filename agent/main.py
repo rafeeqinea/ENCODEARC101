@@ -1042,20 +1042,7 @@ Answer clearly and concisely. Keep responses under 200 words."""
                     if reply:
                         return {"response": reply, "source": "arcbot-local"}
     except Exception as e:
-        logger.warning("Ollama unavailable, falling back: %s", e)
-
-    # --- Try 2: Gemini cloud fallback ---
-    try:
-        from .ai_agent import _client as ai_client, API_KEY as ai_key
-        if ai_key and ai_client:
-            full_prompt = system_prompt + f"\n\nUser: {body.message}"
-            response = ai_client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=full_prompt,
-            )
-            return {"response": response.text.strip(), "source": "arcbot-cloud"}
-    except Exception as e:
-        logger.error("Chat AI cloud error: %s", e)
+        logger.warning("Ollama unavailable: %s", e)
 
     # --- Fallback: static snapshot ---
     return {

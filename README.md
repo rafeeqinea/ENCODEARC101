@@ -19,7 +19,7 @@ Pull live EURC/USDC rate from Stork oracle
       ↓
 Check if any payments are coming up
       ↓
-Ask Gemini: "given all this, what should I do?"
+Ask the AI: "given all this, what should I do?"
       ↓
 Execute the decision on-chain via ArcTreasury.sol
       ↓
@@ -42,7 +42,7 @@ It's not a dashboard that shows you data and waits for you to click buttons. It 
 
 **Arc Testnet** — Everything runs on Arc. Contracts deployed, transactions executing, balances updating on-chain.
 
-**Bonus: the AI isn't just for show** — Gemini 2.5 Flash makes the actual decisions with confidence scores. There's also a local chatbot (Ollama phi3:mini) running on your machine so you can ask the agent questions without burning API credits.
+**Bonus: the AI isn't just for show** — a local LLM (Ollama Phi-3) makes the actual decisions with confidence scores. The chatbot runs entirely on your machine — no API keys, no cloud calls, no token costs.
 
 ---
 
@@ -124,4 +124,4 @@ Open `localhost:5173`. Connect MetaMask to Arc Testnet (chain 5042002). Agent st
 
 ## Stack
 
-Python · FastAPI · Web3.py · Gemini 2.5 Flash · Ollama · React 19 · Vite 7 · Tailwind v4 · Recharts · Framer Motion · Solidity 0.8.20 · OpenZeppelin · Stork Network · Circle CCTP V2 · Circle StableFX · Arc Testnet
+Python · FastAPI · Web3.py · Ollama (Phi-3) · React 19 · Vite 7 · Tailwind v4 · Recharts · Framer Motion · Solidity 0.8.20 · OpenZeppelin · Stork Network · Circle CCTP V2 · Circle StableFX · Arc Testnet

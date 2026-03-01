@@ -82,7 +82,7 @@ export default function SettingsPage() {
         { name: 'Arc Testnet RPC', endpoint: 'rpc.testnet.arc.network', status: wallet?.blockchain_available },
         { name: 'Circle StableFX', endpoint: 'api-sandbox.circle.com', status: true },
         { name: 'Stork Oracle', endpoint: 'rest.jp.stork-oracle.network', status: true },
-        { name: 'Gemini AI', endpoint: 'generativelanguage.googleapis.com', status: true },
+        { name: 'Ollama AI', endpoint: 'localhost:11434 (local)', status: true },
         { name: 'CCTP V2 Bridge', endpoint: 'iris-api-sandbox.circle.com', status: true },
         { name: 'USYC Teller', endpoint: 'Ethereum Sepolia (arch. integrated)', status: true },
         { name: 'Circle CPN', endpoint: 'Conceptual integration', status: null },
