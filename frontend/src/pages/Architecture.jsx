@@ -1,10 +1,54 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ExternalLink, ShieldCheck, Database, Zap, Globe, Cpu, ArrowRight,
   Layers, Brain, Wallet, TrendingUp, RefreshCw, Lock, BarChart3,
   Eye, ChevronDown, ChevronUp, ArrowDown, Activity, Receipt
 } from 'lucide-react'
+
+/* ── Looping CSS animations injected once ── */
+const ANIM_STYLES = `
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(249,115,22,0.15), 0 0 60px rgba(249,115,22,0.05); }
+  50% { box-shadow: 0 0 35px rgba(249,115,22,0.3), 0 0 80px rgba(249,115,22,0.1); }
+}
+@keyframes flow-right {
+  0% { transform: translateX(-8px); opacity: 0; }
+  30% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateX(8px); opacity: 0; }
+}
+@keyframes flow-down {
+  0% { transform: translateY(-6px); opacity: 0; }
+  30% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translateY(6px); opacity: 0; }
+}
+@keyframes status-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.4; }
+}
+@keyframes float-emoji {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes rotate-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes core-ring {
+  0% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+.arch-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.arch-flow-right { animation: flow-right 1.5s ease-in-out infinite; }
+.arch-flow-down { animation: flow-down 1.5s ease-in-out infinite; }
+.arch-status-pulse { animation: status-pulse 2s ease-in-out infinite; }
+.arch-float { animation: float-emoji 3s ease-in-out infinite; }
+.arch-rotate { animation: rotate-slow 8s linear infinite; }
+.arch-core-ring { animation: core-ring 2.5s ease-out infinite; }
+`
 
 /* ── Visual flow diagram nodes ── */
 const DIAGRAM_NODES = [
@@ -56,26 +100,44 @@ function Expandable({ title, icon: Icon, children, defaultOpen = false }) {
     )
 }
 
-/* ── Arrow connector ── */
+/* ── Animated flowing arrow connector ── */
 function FlowArrow({ vertical = false }) {
     return vertical ? (
-        <div className="flex justify-center py-1">
-            <ArrowDown className="w-4 h-4 text-[var(--color-accent)] opacity-60" />
+        <div className="flex flex-col items-center py-1 gap-0.5">
+            {[0, 1, 2].map(i => (
+                <div key={i} className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] arch-flow-down" style={{ animationDelay: `${i * 0.3}s` }} />
+            ))}
         </div>
     ) : (
-        <div className="hidden md:flex items-center justify-center px-1">
-            <ArrowRight className="w-5 h-5 text-[var(--color-accent)] opacity-50" />
+        <div className="hidden md:flex items-center justify-center px-1 gap-0.5">
+            {[0, 1, 2].map(i => (
+                <div key={i} className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] arch-flow-right" style={{ animationDelay: `${i * 0.3}s` }} />
+            ))}
         </div>
     )
 }
 
 export default function Architecture() {
+    const [tick, setTick] = useState(0)
+    useEffect(() => { const t = setInterval(() => setTick(v => v + 1), 2000); return () => clearInterval(t) }, [])
+
     return (
         <div className="max-w-[1100px] mx-auto space-y-8">
+            {/* Inject animation styles */}
+            <style>{ANIM_STYLES}</style>
 
             {/* ═══════ HEADER ═══════ */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <h2 className="font-heading text-2xl font-bold text-[var(--color-text-primary)] mb-1">How ArcTreasury Works</h2>
+                <div className="flex items-center gap-3 mb-1">
+                    <h2 className="font-heading text-2xl font-bold text-[var(--color-text-primary)]">How ArcTreasury Works</h2>
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                        <span className="relative flex h-2 w-2">
+                            <span className="arch-status-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <span className="text-[0.6rem] font-semibold text-green-400 uppercase tracking-wider">System Live</span>
+                    </span>
+                </div>
                 <p className="text-sm text-[var(--color-text-secondary)]">An AI agent that manages your treasury autonomously — here's the full picture.</p>
             </motion.div>
 
@@ -93,7 +155,7 @@ export default function Architecture() {
                         <div className="absolute top-3 left-4 w-6 h-6 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
                             <span className="text-[0.6rem] font-bold font-mono text-[var(--color-accent)]">{i + 1}</span>
                         </div>
-                        <span className="text-3xl mb-3">{step.emoji}</span>
+                        <span className="text-3xl mb-3 arch-float" style={{ animationDelay: `${i * 0.6}s` }}>{step.emoji}</span>
                         <h3 className="font-heading text-lg font-bold text-[var(--color-text-primary)] mb-1.5">{step.title}</h3>
                         <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{step.desc}</p>
                         {/* Connector arrow (between cards) */}
@@ -140,20 +202,26 @@ export default function Architecture() {
                     {/* Center: AI Agent (hero node) */}
                     <motion.div
                         whileHover={{ scale: 1.02 }}
-                        className="relative px-6 py-5 rounded-2xl border-2 border-[var(--color-accent)]/50 bg-[var(--color-surface)] text-center w-56"
-                        style={{ boxShadow: '0 0 30px rgba(249,115,22,0.1)' }}
+                        className="relative px-6 py-5 rounded-2xl border-2 border-[var(--color-accent)]/50 bg-[var(--color-surface)] text-center w-56 arch-pulse-glow"
                     >
+                        {/* Expanding ring */}
+                        <div className="absolute inset-0 rounded-2xl border-2 border-[var(--color-accent)]/20 arch-core-ring pointer-events-none" />
                         <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[var(--color-accent)] text-[0.55rem] font-bold text-white uppercase tracking-wider">
                             Core
                         </div>
                         <div className="w-12 h-12 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center mx-auto mb-2">
-                            <Brain className="w-6 h-6 text-[var(--color-accent)]" />
+                            <Brain className="w-6 h-6 text-[var(--color-accent)] arch-rotate" style={{ animationDuration: '12s' }} />
                         </div>
                         <p className="text-base font-bold text-[var(--color-text-primary)]">AI Agent</p>
                         <p className="text-[0.65rem] text-[var(--color-text-muted)] mt-0.5">Local LLM (Phi-3)</p>
                         <div className="flex justify-center gap-1.5 mt-2.5">
-                            {['Analyze', 'Decide', 'Execute'].map(tag => (
-                                <span key={tag} className="px-2 py-0.5 rounded-full text-[0.55rem] font-medium bg-[var(--color-accent)]/10 text-[var(--color-accent)]">{tag}</span>
+                            {['Analyze', 'Decide', 'Execute'].map((tag, i) => (
+                                <motion.span
+                                    key={tag}
+                                    animate={{ opacity: [0.5, 1, 0.5] }}
+                                    transition={{ duration: 2, delay: i * 0.6, repeat: Infinity }}
+                                    className="px-2 py-0.5 rounded-full text-[0.55rem] font-medium bg-[var(--color-accent)]/10 text-[var(--color-accent)]"
+                                >{tag}</motion.span>
                             ))}
                         </div>
                     </motion.div>
@@ -183,11 +251,21 @@ export default function Architecture() {
 
                 {/* Dashboard connection below */}
                 <div className="flex flex-col items-center mt-4">
-                    <div className="w-px h-6 bg-gradient-to-b from-[var(--color-accent)]/40 to-transparent" />
+                    <div className="flex flex-col items-center gap-1 h-8">
+                        {[0, 1, 2].map(i => (
+                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] arch-flow-down" style={{ animationDelay: `${i * 0.3}s` }} />
+                        ))}
+                    </div>
                     <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
                         <BarChart3 className="w-4 h-4 text-[var(--color-accent)]" />
                         <span className="text-sm font-semibold text-[var(--color-text-primary)]">React Dashboard</span>
-                        <span className="text-[0.6rem] text-[var(--color-text-muted)]">• WebSocket live updates</span>
+                        <span className="flex items-center gap-1">
+                            <span className="relative flex h-1.5 w-1.5">
+                                <span className="arch-status-pulse absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                            </span>
+                            <span className="text-[0.6rem] text-[var(--color-text-muted)]">WebSocket live</span>
+                        </span>
                     </div>
                 </div>
             </motion.div>
@@ -206,7 +284,12 @@ export default function Architecture() {
                             { step: '4', label: 'Execute', desc: 'Send on-chain tx — StableFX swap, USYC deposit/withdraw, or CCTP bridge burn', color: '#F97316' },
                             { step: '5', label: 'Report', desc: 'Log receipt, broadcast via WebSocket, update risk score, queue next cycle', color: '#22C55E' },
                         ].map((s, i) => (
-                            <div key={s.step} className="flex items-start gap-3">
+                            <motion.div
+                                key={s.step}
+                                animate={{ opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 2.5, delay: i * 0.5, repeat: Infinity }}
+                                className="flex items-start gap-3"
+                            >
                                 <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: s.color }}>
                                     {s.step}
                                 </div>
@@ -214,11 +297,10 @@ export default function Architecture() {
                                     <span className="text-sm font-semibold text-[var(--color-text-primary)]">{s.label}</span>
                                     <span className="text-sm text-[var(--color-text-secondary)]"> — {s.desc}</span>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </Expandable>
-
                 {/* Smart Contracts */}
                 <Expandable title="Smart Contract Functions (10 functions, 3 access levels)" icon={Lock}>
                     <div className="overflow-x-auto">
@@ -264,12 +346,12 @@ export default function Architecture() {
                 <Expandable title="External Integrations (6 services)" icon={Globe}>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {[
-                            { icon: TrendingUp, name: 'Stork Oracle', what: 'Real-time WebSocket + REST price feeds', status: '🟢' },
-                            { icon: RefreshCw, name: 'StableFX', what: 'On-chain USDC↔EURC at optimal rates', status: '🟢' },
-                            { icon: Database, name: 'USYC (Hashnote)', what: 'Tokenized T-Bill vault ~4.5% APY', status: '🟢' },
-                            { icon: Globe, name: 'Circle CCTP V2', what: 'Cross-chain burn→attest→mint bridge', status: '🟢' },
-                            { icon: Brain, name: 'Local LLM (Phi-3)', what: 'AI decision engine with confidence scores', status: '🟢' },
-                            { icon: Zap, name: 'Circle CPN', what: 'Instant cross-border nanopayments', status: '🟡' },
+                            { icon: TrendingUp, name: 'Stork Oracle', what: 'Real-time WebSocket + REST price feeds', live: true },
+                            { icon: RefreshCw, name: 'StableFX', what: 'On-chain USDC↔EURC at optimal rates', live: true },
+                            { icon: Database, name: 'USYC (Hashnote)', what: 'Tokenized T-Bill vault ~4.5% APY', live: true },
+                            { icon: Globe, name: 'Circle CCTP V2', what: 'Cross-chain burn→attest→mint bridge', live: true },
+                            { icon: Brain, name: 'Local LLM (Phi-3)', what: 'AI decision engine with confidence scores', live: true },
+                            { icon: Zap, name: 'Circle CPN', what: 'Instant cross-border nanopayments', live: false },
                         ].map(s => (
                             <div key={s.name} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--color-bg-secondary)]">
                                 <s.icon className="w-4 h-4 text-[var(--color-accent)] flex-shrink-0" />
@@ -277,7 +359,10 @@ export default function Architecture() {
                                     <p className="text-sm font-semibold text-[var(--color-text-primary)]">{s.name}</p>
                                     <p className="text-[0.65rem] text-[var(--color-text-muted)] truncate">{s.what}</p>
                                 </div>
-                                <span className="text-xs">{s.status}</span>
+                                <span className="relative flex h-2.5 w-2.5">
+                                    {s.live && <span className="arch-status-pulse absolute inline-flex h-full w-full rounded-full opacity-75" style={{ backgroundColor: s.live ? '#4ade80' : '#facc15' }}></span>}
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: s.live ? '#22c55e' : '#eab308' }}></span>
+                                </span>
                             </div>
                         ))}
                     </div>
