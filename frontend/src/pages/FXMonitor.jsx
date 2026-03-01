@@ -33,6 +33,7 @@ export default function FXMonitor() {
     const [quote, setQuote] = useState(null)
     const [quoteLoading, setQuoteLoading] = useState(false)
     const [tradeStatus, setTradeStatus] = useState(null) // null | 'executing' | 'completed'
+    const [lastTrade, setLastTrade] = useState(null) // stores fee/net/receipt for toast
     const [liveRate, setLiveRate] = useState(null)
 
     // Wait, let's preserve the rest
@@ -82,6 +83,12 @@ export default function FXMonitor() {
                 rate: parseFloat(quote.rate) || 0.9215,
             })
             setTradeStatus('completed')
+            setLastTrade({
+                fee: result?.fee || 1.50,
+                net: result?.net_amount || parseFloat(quoteAmount),
+                receipt: result?.receipt_id,
+                direction: quoteDirection,
+            })
 
             // Add to local swap history with fee and receipt
             setLocalSwaps(prev => [{
@@ -103,7 +110,8 @@ export default function FXMonitor() {
             setTimeout(() => {
                 setTradeStatus(null)
                 setQuote(null)
-            }, 5000)
+                setLastTrade(null)
+            }, 6000)
         } catch {
             setTradeStatus(null)
         }
@@ -235,9 +243,36 @@ export default function FXMonitor() {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
 
-            {/* Chart */}
+                {/* Trade Success Toast */}
+                <AnimatePresence>
+                    {tradeStatus === 'completed' && lastTrade && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            className="mt-3 p-4 rounded-xl bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 flex items-center justify-between"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-[var(--color-success)]/20 flex items-center justify-center">
+                                    <Check className="w-4 h-4 text-[var(--color-success)]" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-[var(--color-success)]">Trade Executed Successfully</p>
+                                    <p className="text-xs text-[var(--color-text-secondary)]">
+                                        {lastTrade.direction} • Net: {typeof lastTrade.net === 'number' ? lastTrade.net.toLocaleString() : lastTrade.net} • Fee: ${typeof lastTrade.fee === 'number' ? lastTrade.fee.toFixed(2) : lastTrade.fee}
+                                    </p>
+                                </div>
+                            </div>
+                            {lastTrade.receipt && (
+                                <span className="text-[0.6rem] font-mono text-[var(--color-text-muted)] px-2 py-1 rounded bg-[var(--color-bg-secondary)]">
+                                    Receipt: {lastTrade.receipt}
+                                </span>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
             <div className="card-flat">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="font-heading text-base font-semibold">USDC/EURC Rate</h3>

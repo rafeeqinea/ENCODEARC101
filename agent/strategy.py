@@ -19,10 +19,18 @@ class TreasuryStrategy:
         self.payment_window = timedelta(hours=payment_window_hours)
         self.collateral_history: List[Dict[str, Any]] = []
 
-    def _upcoming_payment(self, obligations: List[Obligation]) -> bool:
+    def _upcoming_payment(self, obligations) -> bool:
         now = datetime.utcnow()
         for o in obligations:
-            if timedelta(0) <= (o.due_at - now) <= self.payment_window:
+            due = o.get("due_date", o.get("due_at")) if isinstance(o, dict) else (o.due_date or o.due_at)
+            if due is None:
+                continue
+            if isinstance(due, str):
+                try:
+                    due = datetime.fromisoformat(due.replace("Z", "+00:00")).replace(tzinfo=None)
+                except Exception:
+                    continue
+            if timedelta(0) <= (due - now) <= self.payment_window:
                 return True
         return False
 
@@ -94,8 +102,14 @@ class TreasuryStrategy:
 
         # Rule 2: payment due soon -> withdraw from USYC
         if self._upcoming_payment(obligations):
-            earliest = min(obligations, key=lambda o: o.due_at)
-            needed = earliest.amount
+            def _get_due(o):
+                d = o.get("due_date", o.get("due_at")) if isinstance(o, dict) else (o.due_date or o.due_at)
+                if isinstance(d, str):
+                    try: d = datetime.fromisoformat(d.replace("Z", "+00:00")).replace(tzinfo=None)
+                    except Exception: d = datetime.max
+                return d or datetime.max
+            earliest = min(obligations, key=_get_due)
+            needed = earliest.get("amount", 0) if isinstance(earliest, dict) else earliest.amount
             actions.append(
                 Action(
                     type=ActionType.WITHDRAW,

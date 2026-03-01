@@ -972,8 +972,8 @@ class ChatMessage(BaseModel):
 
 @app.post("/api/chat")
 async def api_chat(body: ChatMessage) -> Dict[str, Any]:
-    """Chat with the AI treasury agent about current treasury state."""
-    from .ai_agent import _client as ai_client, API_KEY as ai_key
+    """Chat with the AI treasury agent — uses local Ollama (phi3:mini) to save API tokens."""
+    import aiohttp as _aiohttp
 
     # Build treasury context for the chatbot
     balances = seed_balances if not blockchain_available else seed_balances
@@ -985,7 +985,7 @@ async def api_chat(body: ChatMessage) -> Dict[str, Any]:
         current_fx
     )
 
-    context = f"""You are ArcTreasury AI Assistant — a helpful chatbot for an autonomous AI-powered treasury management system on Arc Testnet.
+    system_prompt = f"""You are ArcBot — the AI assistant for ArcTreasury, an autonomous AI-powered treasury management system on Arc Testnet.
 
 Current Treasury State:
 - USDC: ${balances.get('usdc', 0):,.2f}
@@ -995,7 +995,7 @@ Current Treasury State:
 
 FX Rate (EURC/USDC): {current_fx:.4f}
 Risk Score: {risk.get('score', 0)}/100 ({risk.get('level', 'unknown')})
-VaR (95%): ${risk.get('var', {}).get('var_95', 0):,.2f}
+VaR (95%): ${risk.get('var', {{}}).get('var_95', 0):,.2f}
 
 Recent Agent Decisions (last 5):
 {chr(10).join(f"- [{d['action']}] {d['reason'][:100]}..." for d in recent_decisions)}
@@ -1005,32 +1005,50 @@ Pending Obligations:
 
 Yield: ${yield_store['total_earned']:,.2f} earned, ${yield_store['total_deposited']:,.2f} deposited
 
-Answer the user's question clearly and concisely. If they ask about actions, explain what the autonomous agent would do. Keep responses under 200 words.
+Answer clearly and concisely. Keep responses under 200 words."""
 
-User: {body.message}"""
-
-    if not ai_key or not ai_client:
-        return {
-            "response": "I'm running in demo mode without an AI API key. The treasury currently holds "
-                        f"${balances.get('usdc', 0):,.0f} USDC, €{balances.get('eurc', 0):,.0f} EURC, "
-                        f"and ${balances.get('usyc', 0):,.0f} USYC. Risk score is {risk.get('score', 0)}/100.",
-            "source": "fallback"
-        }
-
+    # --- Try 1: Local Ollama (phi3:mini) — free, fast, no API tokens ---
     try:
-        response = ai_client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=context,
-        )
-        return {"response": response.text.strip(), "source": "gemini-2.5-flash"}
+        async with _aiohttp.ClientSession(timeout=_aiohttp.ClientTimeout(total=30)) as session:
+            async with session.post(
+                "http://localhost:11434/api/chat",
+                json={
+                    "model": "phi3:mini",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": body.message},
+                    ],
+                    "stream": False,
+                },
+            ) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    reply = data.get("message", {}).get("content", "").strip()
+                    if reply:
+                        return {"response": reply, "source": "arcbot-local"}
     except Exception as e:
-        logger.error("Chat AI error: %s", e)
-        return {
-            "response": f"AI temporarily unavailable. Treasury snapshot: "
-                        f"${balances.get('usdc', 0):,.0f} USDC, €{balances.get('eurc', 0):,.0f} EURC, "
-                        f"${balances.get('usyc', 0):,.0f} USYC. Risk: {risk.get('level', 'unknown')}.",
-            "source": "fallback"
-        }
+        logger.warning("Ollama unavailable, falling back: %s", e)
+
+    # --- Try 2: Gemini cloud fallback ---
+    try:
+        from .ai_agent import _client as ai_client, API_KEY as ai_key
+        if ai_key and ai_client:
+            full_prompt = system_prompt + f"\n\nUser: {body.message}"
+            response = ai_client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=full_prompt,
+            )
+            return {"response": response.text.strip(), "source": "arcbot-cloud"}
+    except Exception as e:
+        logger.error("Chat AI cloud error: %s", e)
+
+    # --- Fallback: static snapshot ---
+    return {
+        "response": f"I'm running in offline mode. Treasury snapshot: "
+                    f"${balances.get('usdc', 0):,.0f} USDC, €{balances.get('eurc', 0):,.0f} EURC, "
+                    f"${balances.get('usyc', 0):,.0f} USYC. Risk: {risk.get('level', 'unknown')}.",
+        "source": "fallback"
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════

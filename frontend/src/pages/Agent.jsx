@@ -46,7 +46,8 @@ export default function Agent() {
             }
             setTimeout(() => setRunState('idle'), 5000)
         } catch {
-            setRunState('idle')
+            setRunState('error')
+            setTimeout(() => setRunState('idle'), 4000)
         }
     }
 
@@ -100,12 +101,13 @@ export default function Agent() {
 
                         <button
                             onClick={handleRun}
-                            disabled={runState !== 'idle'}
-                            className="neon-btn flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-accent)] text-white text-xs font-semibold hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-50 min-w-[120px] justify-center"
+                            disabled={runState !== 'idle' && runState !== 'error'}
+                            className={`neon-btn flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-xs font-semibold transition-colors disabled:opacity-50 min-w-[120px] justify-center ${runState === 'error' ? 'bg-[var(--color-danger)] hover:bg-[var(--color-danger)]' : 'bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)]'}`}
                         >
                             {runState === 'analyzing' && <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyzing…</>}
                             {runState === 'executing' && <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Executing…</>}
                             {runState === 'complete' && <><Check className="w-3.5 h-3.5" /> Complete</>}
+                            {runState === 'error' && <><span className="w-3.5 h-3.5">⚠</span> Failed — Retry</>}
                             {runState === 'idle' && <><Play className="w-3.5 h-3.5" /> Run Cycle</>}
                         </button>
                     </div>
