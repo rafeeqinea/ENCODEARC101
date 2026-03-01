@@ -17,7 +17,11 @@ class ArcClient:
     """Async client for interacting with the Arc Treasury contract."""
 
     def __init__(self, abi_path: Path = ABI_PATH) -> None:
-        self.w3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(ARC_RPC_URL))
+        from aiohttp import ClientTimeout
+        self.w3 = AsyncWeb3(AsyncWeb3.AsyncHTTPProvider(
+            ARC_RPC_URL,
+            request_kwargs={"timeout": ClientTimeout(total=5)}
+        ))
         # POA middleware for testnet
         self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
         self.account = self.w3.eth.account.from_key(PRIVATE_KEY)

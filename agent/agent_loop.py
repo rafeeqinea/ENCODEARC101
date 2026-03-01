@@ -39,7 +39,11 @@ class AgentLoop:
     async def run(self) -> None:
         """Run the agent loop indefinitely with exponential backoff on errors."""
         while True:
-            await self.run_once()
+            try:
+                await asyncio.wait_for(self.run_once(), timeout=25.0)
+            except asyncio.TimeoutError:
+                logger.warning("Agent loop cycle timed out after 25s")
+                self._consecutive_failures += 1
             if self._consecutive_failures > 0:
                 backoff = min(self.interval * (2 ** self._consecutive_failures), self._max_backoff)
                 logger.info("Backing off for %ds after %d consecutive failures", backoff, self._consecutive_failures)
@@ -50,8 +54,9 @@ class AgentLoop:
     async def run_once(self) -> None:
         """Execute a single agent cycle."""
         try:
-            # 1. fetch balances
-            raw_balances = await self.arc.get_balances()
+            # 1. fetch balances (with timeout to avoid hanging)
+            import asyncio
+            raw_balances = await asyncio.wait_for(self.arc.get_balances(), timeout=10.0)
             balances = [Balance(token=k, amount=v) for k, v in raw_balances.items()]
 
             # 2. fetch oracle data and wrap in Pydantic models

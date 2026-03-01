@@ -137,8 +137,11 @@ async def startup_event() -> None:
 
     # Start agent loop if blockchain is available
     if blockchain_available and arc_client:
+        # Create a SEPARATE ArcClient for the loop so it doesn't share
+        # the same aiohttp session with API endpoints (prevents event-loop blocking)
+        loop_arc_client = ArcClient()
         agent_loop = AgentLoop(
-            arc_client=arc_client,
+            arc_client=loop_arc_client,
             oracle=oracle,
             strategy=strategy,
             obligations_store=[],
@@ -221,7 +224,7 @@ async def api_balances() -> Dict[str, Any]:
     """Return treasury token balances."""
     if blockchain_available and arc_client:
         try:
-            raw = await arc_client.get_balances()
+            raw = await asyncio.wait_for(arc_client.get_balances(), timeout=5.0)
             usdc = raw["USDC"] / 1e18
             eurc = raw["EURC"] / 1e18
             usyc = raw["USYC"] / 1e18
@@ -253,7 +256,7 @@ async def api_risk():
     """Return current treasury risk metrics."""
     try:
         if arc_client and blockchain_available:
-            raw = await arc_client.get_balances()
+            raw = await asyncio.wait_for(arc_client.get_balances(), timeout=5.0)
             balances = {
                 "usdc": raw["USDC"] / 1e18,
                 "eurc": raw["EURC"] / 1e18,
@@ -550,7 +553,7 @@ async def run_agent_cycle():
         balances = dict(seed_balances)  # start with seed, override with on-chain
         try:
             if arc_client and blockchain_available:
-                raw_balances = await arc_client.get_balances()
+                raw_balances = await asyncio.wait_for(arc_client.get_balances(), timeout=5.0)
                 balances = {
                     "usdc": raw_balances["USDC"] / 10**18,
                     "eurc": raw_balances["EURC"] / 10**18,
@@ -650,23 +653,23 @@ async def api_wallet() -> Dict[str, Any]:
     """Return the agent's wallet info and gas balance."""
     from .config import TREASURY_CONTRACT as treasury_addr
     address = treasury_addr or "0x624bfC2a364C83c42F980F878c2177F76230dd44"
-    gas_balance = 0.0
+    gas_balance = 19.93
     source = "seed"
     
     if blockchain_available and arc_client:
         try:
             address = arc_client.account.address
-            # Arc uses USDC as gas — fetch native balance
-            raw_balance = await arc_client.w3.eth.get_balance(arc_client.account.address)
+            raw_balance = await asyncio.wait_for(
+                arc_client.w3.eth.get_balance(arc_client.account.address), timeout=5.0
+            )
             gas_balance = raw_balance / 10**18
             source = "on-chain"
         except Exception as exc:
             logger.warning("get_wallet failed: %s", exc)
-            gas_balance = 19.93
 
     return {
         "address": address,
-        "balance_usdc": gas_balance if source == "on-chain" else 19.93,
+        "balance_usdc": gas_balance,
         "chain": "Arc Testnet",
         "chain_id": 5042002,
         "treasury_contract": treasury_addr,
@@ -822,6 +825,12 @@ async def add_obligation(body: CreateObligation) -> Dict[str, Any]:
 
 
 @app.post("/agent/run")
-async def trigger_run() -> Dict[str, Any]:
+async def trigger_run_legacy() -> Dict[str, Any]:
     """Legacy trigger agent cycle."""
+    return await run_agent_cycle()
+
+
+@app.post("/api/agent/run")
+async def trigger_run() -> Dict[str, Any]:
+    """Trigger one manual agent cycle."""
     return await run_agent_cycle()
