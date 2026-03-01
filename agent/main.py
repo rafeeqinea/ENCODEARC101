@@ -69,6 +69,7 @@ fx_swaps: List[Dict[str, Any]] = []
 tx_log: List[Dict[str, Any]] = []  # unified transaction log
 connected_clients: List[WebSocket] = []
 seed_balances: Dict[str, float] = {}
+trade_adjustments: Dict[str, float] = {"usdc": 0, "eurc": 0, "usyc": 0}  # FX trade offsets applied on top of on-chain
 settings_store: Dict[str, Any] = {
     "risk_tolerance": "moderate",
     "rebalance_threshold": 5.0,
@@ -238,23 +239,32 @@ async def broadcast_decision(decision: Any) -> None:
 
 @app.get("/api/balances")
 async def api_balances() -> Dict[str, Any]:
-    """Return treasury token balances."""
+    """Return treasury token balances (on-chain + trade adjustments)."""
+    base_usdc, base_eurc, base_usyc = seed_balances.get("usdc", 0), seed_balances.get("eurc", 0), seed_balances.get("usyc", 0)
+    source = "seed"
+
     if blockchain_available and arc_client:
         try:
             raw = await asyncio.wait_for(arc_client.get_balances(), timeout=5.0)
-            usdc = raw["USDC"] / 1e18
-            eurc = raw["EURC"] / 1e18
-            usyc = raw["USYC"] / 1e18
-            return {
-                "usdc": usdc,
-                "eurc": eurc,
-                "usyc": usyc,
-                "total_usd": usdc + (eurc / 0.92) + usyc,
-                "source": "on-chain",
-            }
+            base_usdc = raw["USDC"] / 1e18
+            base_eurc = raw["EURC"] / 1e18
+            base_usyc = raw["USYC"] / 1e18
+            source = "on-chain"
         except Exception as exc:
             logger.warning("get_balances failed, using seed: %s", exc)
-    return {**seed_balances, "source": "seed"}
+
+    # Apply trade adjustments (FX swaps update these offsets)
+    adj_usdc = base_usdc + trade_adjustments.get("usdc", 0)
+    adj_eurc = base_eurc + trade_adjustments.get("eurc", 0)
+    adj_usyc = base_usyc + trade_adjustments.get("usyc", 0)
+
+    return {
+        "usdc": round(adj_usdc, 2),
+        "eurc": round(adj_eurc, 2),
+        "usyc": round(adj_usyc, 2),
+        "total_usd": round(adj_usdc + (adj_eurc / 0.92) + adj_usyc, 2),
+        "source": source,
+    }
 
 
 @app.get("/api/forecast")
@@ -780,14 +790,11 @@ async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
         net_amount = amount - fee
         if amount > 0:
             if "USDC→EURC" in direction or "USDC" in direction:
-                seed_balances["usdc"] = seed_balances.get("usdc", 0) - amount
-                seed_balances["eurc"] = seed_balances.get("eurc", 0) + round(net_amount * rate, 2)
+                trade_adjustments["usdc"] -= amount
+                trade_adjustments["eurc"] += round(net_amount * rate, 2)
             elif "EURC→USDC" in direction:
-                seed_balances["eurc"] = seed_balances.get("eurc", 0) - amount
-                seed_balances["usdc"] = seed_balances.get("usdc", 0) + round(net_amount / rate, 2)
-            seed_balances["total_usd"] = round(
-                seed_balances.get("usdc", 0) + seed_balances.get("eurc", 0) / 0.92 + seed_balances.get("usyc", 0), 2
-            )
+                trade_adjustments["eurc"] -= amount
+                trade_adjustments["usdc"] += round(net_amount / rate, 2)
         # Log to transaction history
         tx_entry = {
             "id": f"fx_{len(tx_log)+1:03d}",
