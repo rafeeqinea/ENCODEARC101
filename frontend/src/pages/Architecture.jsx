@@ -1,308 +1,337 @@
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ExternalLink, ShieldCheck, Database, Zap, Globe, Cpu, ArrowDown,
-  Layers, Brain, Wallet, TrendingUp, RefreshCw, Lock, BarChart3, Bot
+  ExternalLink, ShieldCheck, Database, Zap, Globe, Cpu, ArrowRight,
+  Layers, Brain, Wallet, TrendingUp, RefreshCw, Lock, BarChart3,
+  Eye, ChevronDown, ChevronUp, ArrowDown, Activity, Receipt
 } from 'lucide-react'
 
-const TECH_STACK = [
-    { name: 'Solidity', desc: 'Smart Contracts on Arc', icon: Layers },
-    { name: 'Python / FastAPI', desc: 'AI Agent Backend', icon: Cpu },
-    { name: 'React / Vite', desc: 'Real-time Dashboard', icon: BarChart3 },
-    { name: 'Gemini 2.5 Flash', desc: 'AI Decision Engine', icon: Brain },
-    { name: 'Stork Oracle', desc: 'Real-time Price Feeds', icon: TrendingUp },
-    { name: 'StableFX', desc: 'USDC↔EURC Swaps', icon: RefreshCw },
-    { name: 'USYC (Hashnote)', desc: 'T-Bill Yield Vault', icon: Wallet },
-    { name: 'Circle CCTP V2', desc: 'Cross-chain Bridge', icon: Globe },
-    { name: 'Circle CPN', desc: 'Nanopayments', icon: Zap },
-    { name: 'Arc Testnet', desc: 'Chain ID 5042002', icon: ShieldCheck },
+/* ── Visual flow diagram nodes ── */
+const DIAGRAM_NODES = [
+    { id: 'oracle', label: 'Stork Oracle', sub: 'Live FX + Yield Prices', icon: TrendingUp, color: '#3B82F6', col: 0 },
+    { id: 'stablefx', label: 'StableFX', sub: 'USDC ↔ EURC Quotes', icon: RefreshCw, color: '#8B5CF6', col: 0 },
+    { id: 'agent', label: 'AI Agent', sub: 'Gemini 2.5 Flash', icon: Brain, color: '#F97316', col: 1, hero: true },
+    { id: 'vault', label: 'Treasury Vault', sub: 'Solidity on Arc', icon: Lock, color: '#22C55E', col: 2 },
+    { id: 'cctp', label: 'CCTP V2 Bridge', sub: 'Cross-chain Burns', icon: Globe, color: '#06B6D4', col: 2 },
 ]
 
-const LAYERS = [
-    {
-        title: 'Presentation Layer',
-        color: '#3B82F6',
-        items: [
-            { name: 'React Dashboard', desc: 'Real-time monitoring with WebSocket + REST polling' },
-            { name: 'ArcBot AI Chat', desc: 'Gemini-powered conversational treasury assistant' },
-            { name: 'Portfolio Viz', desc: 'Pie charts, area charts, risk gauges, tx history' },
-        ],
-    },
-    {
-        title: 'API Gateway',
-        color: '#8B5CF6',
-        items: [
-            { name: 'FastAPI Server', desc: '20+ REST endpoints — balances, decisions, yield, FX, bridge, settings' },
-            { name: 'WebSocket Feed', desc: 'Live decision stream to all connected clients' },
-            { name: 'Receipt Engine', desc: 'Downloadable trade receipts with fee breakdown' },
-        ],
-    },
-    {
-        title: 'AI Agent Core',
-        color: '#F97316',
-        items: [
-            { name: 'Decision Engine', desc: 'Gemini 2.5 Flash analyses market + balances → typed decisions' },
-            { name: 'Strategy Module', desc: 'Risk scoring, VaR, collateral ratio, rebalance thresholds' },
-            { name: 'Autonomous Loop', desc: '30s cycles: ingest → analyze → decide → execute → log' },
-        ],
-    },
-    {
-        title: 'Blockchain Layer',
-        color: '#22C55E',
-        items: [
-            { name: 'ArcTreasury Vault', desc: 'Escrow, vesting, batch payouts, on-chain receipt logs' },
-            { name: 'Stork Oracle', desc: 'WebSocket + REST price feeds for FX & yield data' },
-            { name: 'CCTP V2 Bridge', desc: 'Cross-chain burn → attestation → mint for USDC transfers' },
-        ],
-    },
+/* ── "How it works" — plain English, 3 simple steps ── */
+const SIMPLE_STEPS = [
+    { emoji: '👀', title: 'Watch', desc: 'The agent monitors live FX rates, yield data, and your treasury balances every 30 seconds.' },
+    { emoji: '🧠', title: 'Think', desc: 'AI analyzes the data, scores risk, and picks the best move — swap currencies, earn yield, or save for upcoming payments.' },
+    { emoji: '⚡', title: 'Act', desc: 'It executes the trade on-chain automatically, logs a receipt, and updates your dashboard in real-time.' },
 ]
 
-const FLOW_STEPS = [
-    {
-        num: '01', title: 'Market Data Ingestion',
-        desc: 'Stork Oracle delivers real-time USDC/EURC rates and USYC yield via WebSocket streams and REST fallback. The agent also reads on-chain balances from the ArcTreasury vault.',
-    },
-    {
-        num: '02', title: 'AI Analysis & Decision',
-        desc: 'The Gemini 2.5 Flash model receives treasury state, market signals, and pending obligations. It outputs typed decisions (fx_swap, yield_deposit, yield_withdraw, rebalance, bridge) with confidence scores (0.55–0.95) and risk assessments.',
-    },
-    {
-        num: '03', title: 'Risk Gate & Validation',
-        desc: 'Strategy module validates each decision against risk thresholds: max single trade size, liquidity buffer requirements, VaR limits, and collateral ratios. High-risk decisions are flagged and require higher confidence.',
-    },
-    {
-        num: '04', title: 'On-Chain Execution',
-        desc: 'Approved decisions execute atomically via the ArcTreasury smart contract — StableFX swaps, USYC vault deposits/withdrawals, or CCTP V2 cross-chain burns. Each tx generates an on-chain receipt with fee breakdown.',
-    },
-    {
-        num: '05', title: 'Post-Trade Settlement',
-        desc: 'Agent updates internal state, logs the transaction, broadcasts the decision via WebSocket to all dashboard clients, recalculates risk score and collateral ratios, and queues the next cycle.',
-    },
-]
-
-const CONTRACT_FUNCS = [
-    { fn: 'executeStableFXSwap()', access: 'Agent', desc: 'Routes USDC to StableFX router for EURC conversion', security: true },
-    { fn: 'depositYield()', access: 'Agent', desc: 'Deposits idle USDC into USYC T-Bill vault', security: true },
-    { fn: 'withdrawYield()', access: 'Agent', desc: 'Redeems USYC for USDC to fund obligations', security: true },
-    { fn: 'createEscrow()', access: 'Agent', desc: 'Creates conditional escrow with release conditions', security: true },
-    { fn: 'releaseEscrow()', access: 'Agent', desc: 'Releases escrowed funds when conditions are met', security: true },
-    { fn: 'createVesting()', access: 'Owner', desc: 'Sets up linear vesting schedule for beneficiary', security: true },
-    { fn: 'claimVested()', access: 'Beneficiary', desc: 'Claims unlocked portion of vesting schedule', security: true },
-    { fn: 'batchPayout()', access: 'Agent', desc: 'Executes multiple token transfers in one tx', security: true },
-    { fn: 'setAgent()', access: 'Owner', desc: 'Updates the authorized AI agent wallet address', security: true },
-    { fn: 'pause() / unpause()', access: 'Owner', desc: 'Emergency circuit breaker for all operations', security: true },
-]
-
-function ArchBox({ children, accent, className = '' }) {
+/* ── Expandable deep-dive sections ── */
+function Expandable({ title, icon: Icon, children, defaultOpen = false }) {
+    const [open, setOpen] = useState(defaultOpen)
     return (
-        <div className={`relative rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-all duration-200 hover:border-[var(--color-accent)]/40 ${className}`}>
-            {accent && <div className="absolute inset-0 rounded-2xl" style={{ background: 'radial-gradient(ellipse at 30% 30%, rgba(249,115,22,0.06) 0%, transparent 70%)' }} />}
-            <div className="relative">{children}</div>
+        <div className="rounded-xl border border-[var(--color-border)] overflow-hidden">
+            <button
+                onClick={() => setOpen(!open)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-[var(--color-surface)] hover:bg-[var(--color-bg-secondary)] transition-colors text-left"
+            >
+                <div className="flex items-center gap-2.5">
+                    <Icon className="w-4.5 h-4.5 text-[var(--color-accent)]" />
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{title}</span>
+                </div>
+                {open ? <ChevronUp className="w-4 h-4 text-[var(--color-text-muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--color-text-muted)]" />}
+            </button>
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="px-5 py-4 border-t border-[var(--color-border-light)]">
+                            {children}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
 
-function VerticalConnector() {
-    return (
+/* ── Arrow connector ── */
+function FlowArrow({ vertical = false }) {
+    return vertical ? (
         <div className="flex justify-center py-1">
-            <motion.div
-                initial={{ scaleY: 0 }}
-                animate={{ scaleY: 1 }}
-                transition={{ duration: 0.3 }}
-                className="flex flex-col items-center gap-0.5"
-            >
-                <div className="w-px h-6" style={{ background: 'linear-gradient(to bottom, var(--color-accent), transparent)' }} />
-                <ArrowDown className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-            </motion.div>
+            <ArrowDown className="w-4 h-4 text-[var(--color-accent)] opacity-60" />
+        </div>
+    ) : (
+        <div className="hidden md:flex items-center justify-center px-1">
+            <ArrowRight className="w-5 h-5 text-[var(--color-accent)] opacity-50" />
         </div>
     )
 }
 
 export default function Architecture() {
     return (
-        <div className="max-w-[1100px] mx-auto space-y-10">
+        <div className="max-w-[1100px] mx-auto space-y-8">
+
+            {/* ═══════ HEADER ═══════ */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <h2 className="font-heading text-2xl font-bold text-[var(--color-text-primary)] mb-1">System Architecture</h2>
-                <p className="text-sm text-[var(--color-text-secondary)]">Complete technical breakdown of ArcTreasury's autonomous AI treasury management system</p>
+                <h2 className="font-heading text-2xl font-bold text-[var(--color-text-primary)] mb-1">How ArcTreasury Works</h2>
+                <p className="text-sm text-[var(--color-text-secondary)]">An AI agent that manages your treasury autonomously — here's the full picture.</p>
             </motion.div>
 
-            {/* === LAYERED ARCHITECTURE === */}
-            <div>
-                <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-[var(--color-accent)]" />
-                    Layered Architecture
-                </h3>
-                <div className="space-y-0">
-                    {LAYERS.map((layer, li) => (
-                        <div key={layer.title}>
-                            <motion.div
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.08 * li }}
-                                className="rounded-xl border border-[var(--color-border)] overflow-hidden"
-                                style={{ borderLeftWidth: 3, borderLeftColor: layer.color }}
-                            >
-                                <div className="px-5 py-3 flex items-center gap-3" style={{ background: `${layer.color}08` }}>
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: layer.color, boxShadow: `0 0 8px ${layer.color}60` }} />
-                                    <span className="text-sm font-bold text-[var(--color-text-primary)]">{layer.title}</span>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 divide-x divide-[var(--color-border-light)]">
-                                    {layer.items.map((item) => (
-                                        <div key={item.name} className="px-5 py-3">
-                                            <p className="text-sm font-semibold text-[var(--color-text-primary)]">{item.name}</p>
-                                            <p className="text-xs text-[var(--color-text-secondary)] mt-0.5 leading-relaxed">{item.desc}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                            {li < LAYERS.length - 1 && <VerticalConnector />}
+            {/* ═══════ HERO: 3-STEP PLAIN ENGLISH ═══════ */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+                {SIMPLE_STEPS.map((step, i) => (
+                    <motion.div
+                        key={step.title}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 * i }}
+                        className="relative flex flex-col items-center text-center px-6 py-6"
+                    >
+                        {/* Step number badge */}
+                        <div className="absolute top-3 left-4 w-6 h-6 rounded-full bg-[var(--color-accent)]/10 flex items-center justify-center">
+                            <span className="text-[0.6rem] font-bold font-mono text-[var(--color-accent)]">{i + 1}</span>
                         </div>
-                    ))}
-                </div>
+                        <span className="text-3xl mb-3">{step.emoji}</span>
+                        <h3 className="font-heading text-lg font-bold text-[var(--color-text-primary)] mb-1.5">{step.title}</h3>
+                        <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">{step.desc}</p>
+                        {/* Connector arrow (between cards) */}
+                        {i < 2 && (
+                            <div className="hidden md:block absolute right-[-12px] top-1/2 -translate-y-1/2 z-10">
+                                <ArrowRight className="w-5 h-5 text-[var(--color-accent)] opacity-40" />
+                            </div>
+                        )}
+                    </motion.div>
+                ))}
             </div>
 
-            {/* === DATA FLOW === */}
-            <div>
-                <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
-                    <RefreshCw className="w-5 h-5 text-[var(--color-accent)]" />
-                    Agent Decision Flow (30s Cycle)
-                </h3>
-                <div className="relative">
-                    {/* Timeline line */}
-                    <div className="absolute left-[22px] top-6 bottom-6 w-px bg-gradient-to-b from-[var(--color-accent)] via-[var(--color-accent)]/30 to-transparent hidden md:block" />
-                    <div className="space-y-4">
-                        {FLOW_STEPS.map((step, i) => (
+            {/* ═══════ VISUAL FLOW DIAGRAM ═══════ */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="card-flat !p-6"
+            >
+                <h3 className="font-heading text-base font-semibold mb-5 text-center text-[var(--color-text-primary)]">System Flow</h3>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:gap-4">
+                    {/* Left: Data Sources */}
+                    <div className="flex flex-col gap-3 items-center md:items-end">
+                        {[DIAGRAM_NODES[0], DIAGRAM_NODES[1]].map(n => (
                             <motion.div
-                                key={step.num}
-                                initial={{ opacity: 0, x: -8 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 * i }}
-                                className="flex gap-4 items-start"
+                                key={n.id}
+                                whileHover={{ scale: 1.03 }}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] w-52"
+                                style={{ borderLeftWidth: 3, borderLeftColor: n.color }}
                             >
-                                <div className="flex-shrink-0 w-11 h-11 rounded-full bg-[var(--color-bg-secondary)] border-2 border-[var(--color-accent)]/40 flex items-center justify-center z-10">
-                                    <span className="font-mono text-sm font-bold text-[var(--color-accent)]">{step.num}</span>
+                                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${n.color}15` }}>
+                                    <n.icon className="w-4.5 h-4.5" style={{ color: n.color }} />
                                 </div>
-                                <div className="flex-1 card-flat !py-3 !px-4">
-                                    <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">{step.title}</h4>
-                                    <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{step.desc}</p>
+                                <div>
+                                    <p className="text-sm font-semibold text-[var(--color-text-primary)] leading-tight">{n.label}</p>
+                                    <p className="text-[0.65rem] text-[var(--color-text-muted)]">{n.sub}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <FlowArrow />
+
+                    {/* Center: AI Agent (hero node) */}
+                    <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="relative px-6 py-5 rounded-2xl border-2 border-[var(--color-accent)]/50 bg-[var(--color-surface)] text-center w-56"
+                        style={{ boxShadow: '0 0 30px rgba(249,115,22,0.1)' }}
+                    >
+                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[var(--color-accent)] text-[0.55rem] font-bold text-white uppercase tracking-wider">
+                            Core
+                        </div>
+                        <div className="w-12 h-12 rounded-xl bg-[var(--color-accent)]/10 flex items-center justify-center mx-auto mb-2">
+                            <Brain className="w-6 h-6 text-[var(--color-accent)]" />
+                        </div>
+                        <p className="text-base font-bold text-[var(--color-text-primary)]">AI Agent</p>
+                        <p className="text-[0.65rem] text-[var(--color-text-muted)] mt-0.5">Gemini 2.5 Flash</p>
+                        <div className="flex justify-center gap-1.5 mt-2.5">
+                            {['Analyze', 'Decide', 'Execute'].map(tag => (
+                                <span key={tag} className="px-2 py-0.5 rounded-full text-[0.55rem] font-medium bg-[var(--color-accent)]/10 text-[var(--color-accent)]">{tag}</span>
+                            ))}
+                        </div>
+                    </motion.div>
+
+                    <FlowArrow />
+
+                    {/* Right: On-chain */}
+                    <div className="flex flex-col gap-3 items-center md:items-start">
+                        {[DIAGRAM_NODES[3], DIAGRAM_NODES[4]].map(n => (
+                            <motion.div
+                                key={n.id}
+                                whileHover={{ scale: 1.03 }}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] w-52"
+                                style={{ borderLeftWidth: 3, borderLeftColor: n.color }}
+                            >
+                                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${n.color}15` }}>
+                                    <n.icon className="w-4.5 h-4.5" style={{ color: n.color }} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-[var(--color-text-primary)] leading-tight">{n.label}</p>
+                                    <p className="text-[0.65rem] text-[var(--color-text-muted)]">{n.sub}</p>
                                 </div>
                             </motion.div>
                         ))}
                     </div>
                 </div>
-            </div>
 
-            {/* === SMART CONTRACT MATRIX === */}
-            <div>
-                <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Lock className="w-5 h-5 text-[var(--color-accent)]" />
-                    Smart Contract Function Matrix
-                </h3>
-                <div className="card-flat overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-[var(--color-border)]">
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Function</th>
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Access</th>
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Description</th>
-                                <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase text-center">Secured</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {CONTRACT_FUNCS.map((f, i) => (
-                                <motion.tr
-                                    key={f.fn}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{ delay: 0.03 * i }}
-                                    className="border-b border-[var(--color-border-light)] hover:bg-[var(--color-bg-secondary)] transition-colors"
-                                >
-                                    <td className="py-2.5 px-3 font-mono text-sm text-[var(--color-accent)]">{f.fn}</td>
-                                    <td className="py-2.5 px-3">
-                                        <span className={`px-2 py-0.5 rounded text-[0.6rem] font-bold ${
-                                            f.access === 'Agent' ? 'bg-blue-500/15 text-blue-400' :
-                                            f.access === 'Owner' ? 'bg-red-500/15 text-red-400' :
-                                            'bg-purple-500/15 text-purple-400'
-                                        }`}>{f.access}</span>
-                                    </td>
-                                    <td className="py-2.5 px-3 text-sm text-[var(--color-text-secondary)]">{f.desc}</td>
-                                    <td className="py-2.5 px-3 text-center"><ShieldCheck className="w-4 h-4 text-[var(--color-success)] mx-auto" /></td>
-                                </motion.tr>
-                            ))}
-                        </tbody>
-                    </table>
+                {/* Dashboard connection below */}
+                <div className="flex flex-col items-center mt-4">
+                    <div className="w-px h-6 bg-gradient-to-b from-[var(--color-accent)]/40 to-transparent" />
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
+                        <BarChart3 className="w-4 h-4 text-[var(--color-accent)]" />
+                        <span className="text-sm font-semibold text-[var(--color-text-primary)]">React Dashboard</span>
+                        <span className="text-[0.6rem] text-[var(--color-text-muted)]">• WebSocket live updates</span>
+                    </div>
                 </div>
-            </div>
+            </motion.div>
 
-            {/* === INTEGRATION MAP === */}
-            <div>
-                <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-[var(--color-accent)]" />
-                    Integration Map
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[
-                        { icon: Database, title: 'USYC (Hashnote)', desc: 'Agent parks surplus capital in tokenized T-Bills for ~4.5% APY. Autonomous deposit/withdraw based on obligation schedule and liquidity needs.', status: 'Active' },
-                        { icon: Zap, title: 'StableFX (Arc)', desc: 'On-chain USDC↔EURC swaps at Stork Oracle rates. Agent monitors rate bands and executes at optimal spread with 0.015% fee.', status: 'Active' },
-                        { icon: Globe, title: 'Circle CCTP V2', desc: 'Cross-chain USDC transfers via burn→attestation→mint. Supports Arc ↔ Ethereum, Base, Arbitrum Sepolia testnets.', status: 'Active' },
-                        { icon: Wallet, title: 'Circle CPN', desc: 'Instant cross-border nanopayments for micro-settlements. Registered wallet endpoints for EUR/USD payment streams.', status: 'Planned' },
-                        { icon: Brain, title: 'Gemini 2.5 Flash', desc: 'AI decision engine processes treasury state + market signals. Returns typed decisions with confidence scores and risk rationale.', status: 'Active' },
-                        { icon: TrendingUp, title: 'Stork Oracle', desc: 'Real-time WebSocket price feeds with REST fallback. Provides USDC/EURC FX rates and USYC yield data for AI analysis.', status: 'Active' },
-                    ].map((item, i) => (
-                        <motion.div
-                            key={item.title}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.06 * i }}
-                            className="p-5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] hover:border-[var(--color-accent)]/40 transition-all duration-200"
-                        >
-                            <div className="flex items-center justify-between mb-3">
-                                <item.icon className="w-5 h-5 text-[var(--color-accent)]" />
-                                <span className={`text-[0.6rem] font-bold px-2 py-0.5 rounded-full ${
-                                    item.status === 'Active' ? 'bg-[var(--color-success)]/15 text-[var(--color-success)]' : 'bg-[var(--color-warning)]/15 text-[var(--color-warning)]'
-                                }`}>{item.status}</span>
+            {/* ═══════ DEEP DIVES (Collapsible) ═══════ */}
+            <div className="space-y-3">
+                <h3 className="font-heading text-lg font-semibold text-[var(--color-text-primary)] mb-1">Deep Dive</h3>
+
+                {/* Agent Decision Cycle */}
+                <Expandable title="Agent Decision Cycle (every 30 seconds)" icon={RefreshCw} defaultOpen>
+                    <div className="space-y-3">
+                        {[
+                            { step: '1', label: 'Ingest', desc: 'Read live FX rates from Stork Oracle + on-chain balances from Treasury vault', color: '#3B82F6' },
+                            { step: '2', label: 'Analyze', desc: 'Feed treasury state, rates, and pending obligations to Gemini AI', color: '#8B5CF6' },
+                            { step: '3', label: 'Validate', desc: 'Check risk thresholds — max trade size, liquidity buffer, VaR limits, collateral ratios', color: '#F59E0B' },
+                            { step: '4', label: 'Execute', desc: 'Send on-chain tx — StableFX swap, USYC deposit/withdraw, or CCTP bridge burn', color: '#F97316' },
+                            { step: '5', label: 'Report', desc: 'Log receipt, broadcast via WebSocket, update risk score, queue next cycle', color: '#22C55E' },
+                        ].map((s, i) => (
+                            <div key={s.step} className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: s.color }}>
+                                    {s.step}
+                                </div>
+                                <div>
+                                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{s.label}</span>
+                                    <span className="text-sm text-[var(--color-text-secondary)]"> — {s.desc}</span>
+                                </div>
                             </div>
-                            <p className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">{item.title}</p>
-                            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{item.desc}</p>
-                        </motion.div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </Expandable>
+
+                {/* Smart Contracts */}
+                <Expandable title="Smart Contract Functions (10 functions, 3 access levels)" icon={Lock}>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-[var(--color-border)]">
+                                    <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Function</th>
+                                    <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">Who</th>
+                                    <th className="py-2 px-3 text-[0.65rem] font-semibold text-[var(--color-text-muted)] uppercase">What it does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {[
+                                    { fn: 'executeStableFXSwap()', who: 'Agent', what: 'Swaps USDC → EURC via StableFX router' },
+                                    { fn: 'depositYield()', who: 'Agent', what: 'Parks idle USDC in USYC T-Bill vault' },
+                                    { fn: 'withdrawYield()', who: 'Agent', what: 'Pulls USDC from USYC to fund payments' },
+                                    { fn: 'createEscrow()', who: 'Agent', what: 'Locks funds with conditional release' },
+                                    { fn: 'releaseEscrow()', who: 'Agent', what: 'Releases escrow when conditions are met' },
+                                    { fn: 'createVesting()', who: 'Owner', what: 'Sets up linear vesting schedule' },
+                                    { fn: 'claimVested()', who: 'Beneficiary', what: 'Claims unlocked vested funds' },
+                                    { fn: 'batchPayout()', who: 'Agent', what: 'Sends tokens to multiple recipients in one tx' },
+                                    { fn: 'setAgent()', who: 'Owner', what: 'Changes the authorized AI wallet address' },
+                                    { fn: 'pause()', who: 'Owner', what: 'Emergency stop for all operations' },
+                                ].map((f, i) => (
+                                    <tr key={f.fn} className="border-b border-[var(--color-border-light)] hover:bg-[var(--color-bg-secondary)] transition-colors">
+                                        <td className="py-2 px-3 font-mono text-xs text-[var(--color-accent)]">{f.fn}</td>
+                                        <td className="py-2 px-3">
+                                            <span className={`px-2 py-0.5 rounded text-[0.6rem] font-bold ${
+                                                f.who === 'Agent' ? 'bg-blue-500/15 text-blue-400' :
+                                                f.who === 'Owner' ? 'bg-red-500/15 text-red-400' :
+                                                'bg-purple-500/15 text-purple-400'
+                                            }`}>{f.who}</span>
+                                        </td>
+                                        <td className="py-2 px-3 text-xs text-[var(--color-text-secondary)]">{f.what}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </Expandable>
+
+                {/* Integrations */}
+                <Expandable title="External Integrations (6 services)" icon={Globe}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {[
+                            { icon: TrendingUp, name: 'Stork Oracle', what: 'Real-time WebSocket + REST price feeds', status: '🟢' },
+                            { icon: RefreshCw, name: 'StableFX', what: 'On-chain USDC↔EURC at optimal rates', status: '🟢' },
+                            { icon: Database, name: 'USYC (Hashnote)', what: 'Tokenized T-Bill vault ~4.5% APY', status: '🟢' },
+                            { icon: Globe, name: 'Circle CCTP V2', what: 'Cross-chain burn→attest→mint bridge', status: '🟢' },
+                            { icon: Brain, name: 'Gemini 2.5 Flash', what: 'AI decision engine with confidence scores', status: '🟢' },
+                            { icon: Zap, name: 'Circle CPN', what: 'Instant cross-border nanopayments', status: '🟡' },
+                        ].map(s => (
+                            <div key={s.name} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--color-bg-secondary)]">
+                                <s.icon className="w-4 h-4 text-[var(--color-accent)] flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-[var(--color-text-primary)]">{s.name}</p>
+                                    <p className="text-[0.65rem] text-[var(--color-text-muted)] truncate">{s.what}</p>
+                                </div>
+                                <span className="text-xs">{s.status}</span>
+                            </div>
+                        ))}
+                    </div>
+                </Expandable>
+
+                {/* Security */}
+                <Expandable title="Security Model" icon={ShieldCheck}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                            { title: 'Role-Based Access', desc: 'Only the registered agent wallet can execute trades. Owner controls agent assignment. Beneficiaries can only claim their own vestings.' },
+                            { title: 'Pausable', desc: 'Owner can pause all vault operations instantly in an emergency — no trades execute while paused.' },
+                            { title: 'MetaMask Gating', desc: 'Dashboard requires real MetaMask connection. Listens for accountsChanged and auto-disconnects if wallet is locked.' },
+                            { title: 'Env-Only Secrets', desc: 'All API keys and private keys loaded from .env files at runtime. Never committed to git. __pycache__ excluded from repo.' },
+                        ].map(s => (
+                            <div key={s.title} className="flex gap-3">
+                                <ShieldCheck className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-semibold text-[var(--color-text-primary)]">{s.title}</p>
+                                    <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{s.desc}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Expandable>
             </div>
 
-            {/* === TECH STACK === */}
+            {/* ═══════ TECH STACK PILLS ═══════ */}
             <div>
-                <h3 className="font-heading text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Cpu className="w-5 h-5 text-[var(--color-accent)]" />
-                    Tech Stack
-                </h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    {TECH_STACK.map((t, i) => (
-                        <motion.div
-                            key={t.name}
-                            className="p-4 rounded-xl border border-[var(--color-border-light)] bg-[var(--color-surface)] hover:border-[var(--color-accent)] transition-all duration-200 group"
-                            initial={{ opacity: 0, scale: 0.95 }}
+                <h3 className="font-heading text-base font-semibold mb-3 text-[var(--color-text-primary)]">Built With</h3>
+                <div className="flex flex-wrap gap-2">
+                    {['Solidity', 'Python', 'FastAPI', 'React', 'Vite', 'Gemini AI', 'Stork Oracle', 'StableFX', 'USYC', 'CCTP V2', 'Circle CPN', 'Arc Testnet', 'ethers.js', 'web3.py', 'Framer Motion', 'Recharts'].map((t, i) => (
+                        <motion.span
+                            key={t}
+                            initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.04 * i }}
+                            transition={{ delay: 0.02 * i }}
+                            className="px-3 py-1.5 rounded-full text-xs font-medium bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)] transition-colors cursor-default"
                         >
-                            <t.icon className="w-4 h-4 text-[var(--color-accent)] mb-2 group-hover:scale-110 transition-transform" />
-                            <p className="text-sm font-semibold text-[var(--color-text-primary)]">{t.name}</p>
-                            <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{t.desc}</p>
-                        </motion.div>
+                            {t}
+                        </motion.span>
                     ))}
                 </div>
             </div>
 
-            {/* === DEPLOYED CONTRACTS === */}
+            {/* ═══════ DEPLOYED CONTRACTS ═══════ */}
             <div className="card-flat bg-[var(--color-bg-secondary)]">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
-                        <h3 className="font-heading text-base font-semibold mb-1">Arc Testnet Contracts</h3>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Verify deployed contracts on ArcScan — Chain ID 5042002</p>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">Treasury: 0x624bfC2a...dd44</span>
-                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">USDC: 0xe91eEBa8...Add6</span>
-                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">EURC: 0x7B703236...E23</span>
-                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">USYC: 0x17ae4a69...E90</span>
+                        <h3 className="font-heading text-base font-semibold mb-1">Deployed on Arc Testnet</h3>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
+                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">Treasury: 0x624b...dd44</span>
+                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">USDC: 0xe91e...Add6</span>
+                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">EURC: 0x7B70...E23</span>
+                            <span className="text-[0.65rem] font-mono text-[var(--color-text-muted)]">USYC: 0x17ae...E90</span>
                         </div>
                     </div>
                     <a href="https://testnet.arcscan.app/" target="_blank" rel="noopener noreferrer" className="neon-btn flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-bg-primary)] border border-[var(--color-border)] hover:border-[var(--color-accent)] transition-colors text-xs font-semibold whitespace-nowrap">
