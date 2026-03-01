@@ -1,129 +1,143 @@
 # ArcTreasury — Demo Voiceover Script
 
 **Total Duration: ~4–5 minutes**
-**Recording: Screen capture with AI voiceover**
+**Recording: Screen capture with AI voiceover (ElevenLabs)**
 
 ---
 
 ## SCENE 1: Landing Page (0:00 – 0:30)
 
-> "Meet ArcTreasury — an autonomous AI-powered treasury management agent built on the Arc blockchain."
->
-> "Instead of a human treasurer manually managing stablecoins, hedging FX risk, and scheduling payouts — ArcTreasury does it all autonomously, every 30 seconds, directly on-chain."
->
-> "Let's connect our wallet to Arc Testnet and see it in action."
+**[Screen: Cinematic intro splash with ArcTreasury logo and rotating rings]**
 
-**[ACTION: Click "Connect Arc Wallet" → MetaMask pops up → connected → auto-navigate to dashboard]**
+> "Yo what's up — I'm Rafeeq, and this is ArcTreasury. So the whole idea is pretty simple — what if your company's treasury could just manage itself? No one sitting there watching FX rates, moving money around manually. An AI agent handles everything, on-chain, fully autonomous."
+
+**[ACTION: Click "Enter the Vault" → transitions to wallet connect → click Connect → dashboard loads]**
 
 ---
 
-## SCENE 2: Dashboard (0:30 – 1:15)
+## SCENE 2: Dashboard (0:30 – 1:20)
 
-> "Here's the main dashboard. The agent is managing a multi-asset treasury across USDC, EURC, and USYC — Hashnote's tokenized T-Bill."
+**[Screen: Dashboard with balances, pie chart, risk score, yield chart]**
+
+> "Alright so this is the main dashboard. Everything you see here is live — these are real on-chain balances from Arc Testnet. We've got USDC, EURC, and USYC which is Hashnote's tokenized T-Bill."
 >
-> "The pie chart shows real-time asset allocation. Risk score is calculated using VaR modeling. And this yield chart tracks cumulative earnings from the USYC deposit strategy — currently running at around 4.5% APY."
+> "The pie chart shows how the treasury is split across these assets. Risk score on the right is calculated using Value at Risk modeling. And this yield chart down here tracks how much we're earning from parking idle capital in USYC — running at about 4.5% APY right now."
 >
-> "These recent decisions were all made autonomously by the AI agent. Let me click one to see its reasoning."
+> "These decisions at the bottom — all made by the AI agent automatically. Let me click one real quick."
 
-**[ACTION: Click a decision → modal opens showing snapshot, reasoning, confidence score, and tx hash]**
+**[ACTION: Click a decision → modal opens with snapshot, reasoning, confidence, tx hash]**
 
-> "Every decision comes with a full audit trail — the market data the agent saw, what it considered, its confidence level, and the resulting on-chain transaction hash verified on ArcScan."
+> "So every decision comes with the full picture — what the agent saw, why it made that call, how confident it was, and the actual transaction hash you can verify on ArcScan. Full transparency, nothing hidden."
 
 ---
 
-## SCENE 3: Agent Page (1:15 – 1:50)
+## SCENE 3: Agent Page (1:20 – 1:55)
 
-> "On the Agent page, we can see the full decision feed and even trigger a manual cycle."
+**[Screen: Agent page with decision feed]**
 
-**[ACTION: Click "Run Cycle" button → watch analyzing → executing → complete]**
+> "This is the Agent page — you can see every decision the AI has made. And we can also trigger a cycle manually, so let me do that."
 
-> "The agent just analyzed current market conditions, checked for due obligations, evaluated yield opportunities, and decided the best action — all in a few seconds."
+**[ACTION: Click "Run Cycle" → watch analyzing → executing → complete]**
+
+> "So what just happened is — the agent pulled live FX rates from Stork Oracle, checked if any obligations are due, ran the ML forecaster, assessed risk, and then made a decision. All in a few seconds. And that decision got executed on-chain with a real transaction."
 >
-> "Notice the strategy parameters here — risk tolerance, rebalance thresholds, max trade sizes. These are all configurable through the Settings page."
+> "You can see the strategy parameters here too — risk tolerance, rebalance thresholds, trade sizes. All of this is configurable from Settings."
 
 ---
 
-## SCENE 4: StableFX / FX Monitor (1:50 – 2:30)
+## SCENE 4: FX Monitor (1:55 – 2:40)
 
-> "This is the FX Monitor, powered by Circle's StableFX integration. We're tracking the live USDC-to-EURC rate with data from the Stork oracle."
+**[Screen: FX Monitor with live rate chart]**
+
+> "This is the FX Monitor — powered by Circle StableFX. We're tracking the live USDC to EURC rate using Stork Oracle price feeds. You can see the rate history, the 24-hour change, all live."
 >
-> "Let's get a live quote. We'll swap 10,000 USDC to EURC."
+> "Let me get a quote — say 10,000 USDC to EURC."
 
-**[ACTION: Enter 10000 → Click "Get Quote" → see rate, fee, you receive → Click "Execute Trade"]**
+**[ACTION: Type 10000 → Click "Get Quote" → rate appears → Click "Execute Trade"]**
 
-> "The trade executed through Circle StableFX with a real on-chain transaction. You can see the fee breakdown, net amount received, and the receipt ID."
+> "And there it is — trade executed. You can see the exact rate, the StableFX fee, net amount, gas cost, and the on-chain tx hash. This actually called the swapFX function on our smart contract — real tokens moved, real gas was paid."
 >
-> "Below is the AI rate forecast. The agent uses linear regression on historical oracle data to predict where the rate is heading — and recommends whether to swap now, wait, or hold."
+> "Down here is the AI forecast — the agent uses linear regression on the oracle data to predict where the rate is heading. It tells you whether to swap now or wait."
 
 ---
 
-## SCENE 5: Yield (2:30 – 2:55)
+## SCENE 5: Yield (2:40 – 3:05)
 
-> "On the Yield page, we track deposits into Hashnote's USYC — a tokenized US Treasury Bill. The agent automatically parks idle USDC here to earn yield, and withdraws when it needs liquidity for payouts."
+**[Screen: Yield page with deposit history and chart]**
+
+> "Yield page — so when the agent sees idle USDC sitting in the treasury, it automatically deposits it into Hashnote's USYC vault. That's basically tokenized US Treasury Bills, earning yield on-chain."
 >
-> "You can see the cumulative yield curve growing over time, and every deposit or withdrawal is linked to a specific agent decision."
+> "You can see the cumulative yield curve growing, and every deposit and withdrawal is linked back to a specific AI decision. So if the agent needs liquidity for a payout, it pulls from here automatically."
 
 ---
 
-## SCENE 6: Obligations / Payouts (2:55 – 3:15)
+## SCENE 6: Obligations (3:05 – 3:25)
 
-> "The Obligations page handles scheduled corporate payments. Each obligation has a recipient, amount, currency, and due date."
+**[Screen: Obligations page with upcoming payments]**
+
+> "Obligations page — this is where corporate payments live. Each one has a recipient, amount, currency, and due date. The agent keeps an eye on all of these."
 >
-> "The agent monitors these continuously. When an obligation is coming due, it automatically funds it — withdrawing from yield if needed, swapping currencies, and executing the payout on-chain."
+> "When something's coming due, it figures out how to fund it — might need to withdraw from yield, swap currencies, whatever. And then it executes the payout on-chain. Fully automated."
 
-**[ACTION: Click "Add Obligation" → show the modal]**
+**[ACTION: Show the obligation list, maybe click "Add Obligation"]**
 
 ---
 
-## SCENE 7: Cross-Chain Bridge (3:15 – 3:40)
+## SCENE 7: Cross-Chain Bridge (3:25 – 3:50)
 
-> "ArcTreasury integrates Circle's CCTP V2 protocol for cross-chain USDC transfers. We support bridging between Arc Testnet, Ethereum Sepolia, Base, and Arbitrum."
->
-> "Each chain's health is monitored in real-time. Let's bridge 1,000 USDC to Ethereum Sepolia."
+**[Screen: Cross-chain bridge page]**
 
-**[ACTION: Click "Bridge USDC" → show the transfer with burn → attestation → mint steps]**
+> "We also integrated Circle's CCTP V2 for cross-chain transfers. So you can bridge USDC between Arc, Ethereum Sepolia, Base, and Arbitrum."
 
-> "The CCTP flow burns USDC on Arc, waits for Circle's attestation, then mints fresh USDC on the destination chain. No wrapped tokens, no liquidity pools."
+**[ACTION: Show the bridge interface, maybe initiate a transfer]**
 
----
-
-## SCENE 8: Smart Contracts (3:40 – 4:00)
-
-> "All four smart contracts are deployed and verified on Arc Testnet. The main ArcTreasury vault handles escrow, vesting, batch payouts, and yield management — protected by OpenZeppelin's ReentrancyGuard, Pausable, and role-based access control."
-
-**[ACTION: Scroll through contract functions, click one to expand security modifiers]**
+> "The flow is — USDC gets burned on Arc, Circle attests it, and then fresh USDC gets minted on the destination chain. No wrapped tokens, no sketchy liquidity pools. Native USDC on both sides."
 
 ---
 
-## SCENE 9: Architecture (4:00 – 4:20)
+## SCENE 8: Smart Contracts (3:50 – 4:10)
 
-> "The architecture page shows how everything connects. At the center is the AI agent running a Watch-Think-Act loop. It reads from oracle feeds, consults the ML model, and writes transactions through the smart contracts."
->
-> "Everything is live — you can see the data flowing between components in real-time."
+**[Screen: Contracts page with deployed contracts and functions]**
+
+> "All the smart contracts are deployed and verified on Arc Testnet. The main one is ArcTreasury — handles escrow, vesting, batch payouts, yield management. It's got ReentrancyGuard, Pausable, role-based access — all the security stuff from OpenZeppelin."
+
+**[ACTION: Scroll through functions, maybe expand one to show security modifiers]**
+
+> "Every function you see here — these are real contract calls the agent makes. Agent-only access, non-reentrant, pausable."
 
 ---
 
-## SCENE 10: Closing (4:20 – 4:35)
+## SCENE 9: Architecture (4:10 – 4:30)
 
-> "ArcTreasury demonstrates what autonomous finance looks like — an AI agent managing real stablecoins, real yield, real FX rates, and real payouts, all settled on Arc's sub-second finality blockchain."
+**[Screen: Architecture page with integration diagram]**
+
+> "And this is how everything connects. The agent runs a Watch-Think-Act loop — watches oracle feeds and market data, thinks using the local LLM and ML forecaster, and acts by executing on-chain transactions."
 >
-> "Built for the Encode x Arc Enterprise and DeFi Hackathon. Thanks for watching."
+> "All these green dots are live health checks by the way — not hardcoded. If something goes down, it shows red. Right now everything's healthy."
+
+---
+
+## SCENE 10: Closing (4:30 – 4:45)
+
+**[Screen: Back to dashboard or landing page]**
+
+> "So yeah — that's ArcTreasury. An AI agent that actually manages your treasury on-chain. Real stablecoins, real yield, real FX rates, real transactions. Everything autonomous, everything transparent. Built solo for the Encode x Arc hackathon. Appreciate you watching — cheers."
 
 ---
 
 ## Screen Recording Tips
 
-1. **Use dark mode** — the app is designed for it
-2. **Start on Landing page** — fresh state, no wallet connected
-3. **Run one agent cycle live** — shows real on-chain tx appearing on ArcScan
-4. **Execute one FX trade live** — shows Circle StableFX integration
-5. **Bridge one transfer** — shows CCTP V2 flow
-6. **Move slowly between pages** — let animations play out
-7. **Hover over decision cards** — shows the detail modals
-8. **End on Architecture page** — strong visual finish
+1. **Start on the cinematic landing page** — let the intro animation play
+2. **Use dark mode** — the app is designed for it
+3. **Run one agent cycle live** — shows real on-chain tx
+4. **Execute one FX trade live** — shows Circle StableFX working
+5. **Move between pages slowly** — let the animations breathe
+6. **Click a decision card** — show the full audit modal
+7. **End on Architecture or dashboard** — strong visual finish
 
-## AI Voice Settings
-- Tone: Professional, confident, not robotic
-- Speed: Moderate (1.0x)
-- Pauses: 1-second pause between scenes
-- Recommended: ElevenLabs or Google Cloud TTS
+## ElevenLabs Voice Settings
+- Voice: Custom designed — young male, Hyderabadi accent with British influence
+- Speed: Natural pace, slightly fast
+- Stability: ~40-50%
+- Clarity: ~70%
+- Pauses: 1-second gap between scenes

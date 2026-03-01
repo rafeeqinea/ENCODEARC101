@@ -78,16 +78,18 @@ export default function Dashboard() {
                                         <Cell fill="#22C55E" />
                                     </Pie>
                                     <Tooltip
-                                        contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 12, fontSize: 12 }}
+                                        contentStyle={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 12, fontSize: 12, color: 'var(--color-text-primary)' }}
+                                        itemStyle={{ color: 'var(--color-text-primary)' }}
+                                        labelStyle={{ color: 'var(--color-text-primary)' }}
                                         formatter={(v) => [formatCurrency(v), '']}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
                         <div className="flex gap-4 mt-3">
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]" /><span className="text-xs text-[var(--color-text-muted)]">USDC</span></div>
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]" /><span className="text-xs text-[var(--color-text-muted)]">EURC</span></div>
-                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" /><span className="text-xs text-[var(--color-text-muted)]">USYC</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]" /><span className="text-xs text-[var(--color-text-primary)]">USDC</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]" /><span className="text-xs text-[var(--color-text-primary)]">EURC</span></div>
+                            <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" /><span className="text-xs text-[var(--color-text-primary)]">USYC</span></div>
                         </div>
                         <div className="mt-3 w-full space-y-1.5">
                             {[
@@ -96,11 +98,11 @@ export default function Dashboard() {
                                 { label: 'USYC', val: bal.usyc || 0, pct: bal.total_usd ? ((bal.usyc || 0) / bal.total_usd * 100) : 0, color: '#22C55E' },
                             ].map(a => (
                                 <div key={a.label} className="flex items-center gap-2">
-                                    <span className="text-xs text-[var(--color-text-muted)] w-10">{a.label}</span>
+                                    <span className="text-xs text-[var(--color-text-primary)] w-10">{a.label}</span>
                                     <div className="flex-1 h-1.5 bg-[var(--color-border-light)] rounded-full overflow-hidden">
                                         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${a.pct}%`, backgroundColor: a.color }} />
                                     </div>
-                                    <span className="text-xs font-mono text-[var(--color-text-secondary)] w-10 text-right">{a.pct.toFixed(0)}%</span>
+                                    <span className="text-xs font-mono text-[var(--color-text-primary)] w-10 text-right">{a.pct.toFixed(0)}%</span>
                                 </div>
                             ))}
                         </div>

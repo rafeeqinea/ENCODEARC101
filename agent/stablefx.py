@@ -121,12 +121,18 @@ class StableFXClient:
 
     def _mock_quote(self, from_curr: str, to_curr: str, amount: str) -> dict:
         """Realistic mock quote when API is unavailable."""
-        rate = 0.9215 + random.uniform(-0.005, 0.005)
+        base_rate = 0.9215 + random.uniform(-0.005, 0.005)
         from_amount = float(amount)
-        to_amount = round(from_amount * rate, 2)
+        # EURC→USDC: invert the rate (1 EURC ≈ 1.085 USDC)
+        if from_curr == "EURC":
+            rate = round(1 / base_rate, 4)
+            to_amount = round(from_amount * rate, 2)
+        else:
+            rate = round(base_rate, 4)
+            to_amount = round(from_amount * rate, 2)
         return {
             "id": f"mock-quote-{datetime.utcnow().strftime('%H%M%S')}",
-            "rate": str(round(rate, 4)),
+            "rate": str(rate),
             "from": {"currency": from_curr, "amount": amount},
             "to": {"currency": to_curr, "amount": str(to_amount)},
             "timestamp": datetime.utcnow().isoformat() + "Z",

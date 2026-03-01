@@ -6,6 +6,8 @@ ArcTreasury is an AI agent that sits on top of a Web3 vault and runs it autonomo
 
 Built solo for the **Encode × Arc Hackathon** (Feb 2026). Five bounty tracks. One agent.
 
+🎥 **[Demo Video](https://drive.google.com/file/d/1YFtMgRhSRcPphHwOrn3O-VAnzzWmutea/view?usp=sharing)**
+
 ---
 
 ## The Loop

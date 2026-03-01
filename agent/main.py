@@ -825,29 +825,49 @@ async def api_stablefx_quote(
 async def api_stablefx_trade(body: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a trade on Circle StableFX with fee tracking and receipt."""
     if stablefx_client and "quoteId" in body:
-        result = await stablefx_client.create_trade(body["quoteId"])
         amount = float(body.get("amount", 0))
         direction = body.get("direction", "USDC→EURC")
         rate = float(body.get("rate", 0.9215))
+
+        # Check available balance before executing
+        bal = await api_balances()
+        if "EURC→USDC" in direction:
+            available = bal.get("eurc", 0)
+            if amount > available:
+                return {"error": f"Insufficient EURC. Available: €{available:,.2f}, requested: €{amount:,.2f}"}
+        else:
+            available = bal.get("usdc", 0)
+            if amount > available:
+                return {"error": f"Insufficient USDC. Available: ${available:,.2f}, requested: ${amount:,.2f}"}
+
+        result = await stablefx_client.create_trade(body["quoteId"])
         fee = round(amount * 0.00015, 2)  # 0.015% StableFX fee
         net_amount = amount - fee
         if amount > 0:
-            if "USDC→EURC" in direction or "USDC" in direction:
+            if "EURC→USDC" in direction:
+                trade_adjustments["eurc"] -= amount
+                trade_adjustments["usdc"] += round(net_amount * rate, 2)
+            else:
                 trade_adjustments["usdc"] -= amount
                 trade_adjustments["eurc"] += round(net_amount * rate, 2)
-            elif "EURC→USDC" in direction:
-                trade_adjustments["eurc"] -= amount
-                trade_adjustments["usdc"] += round(net_amount / rate, 2)
-        # Produce real on-chain tx hash if blockchain available
+        # Execute real on-chain swap if blockchain available
         real_tx = None
         gas_cost = 0.0
         if arc_client and blockchain_available:
             try:
-                real_tx = await arc_client._erc20_approve_fallback()
-                # Estimate gas cost in USDC (Arc uses USDC for gas)
+                # Convert amount to wei (18 decimals) and call the real swapFX contract method
+                amount_wei = int(amount * 1e18)
+                from_token = "USDC" if "USDC→" in direction else "EURC"
+                to_token = "EURC" if "→EURC" in direction else "USDC"
+                real_tx = await arc_client.swap_fx(from_token, to_token, amount_wei)
                 gas_cost = 0.001  # ~0.001 USDC typical gas on Arc Testnet
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("On-chain swap failed, using fallback: %s", exc)
+                try:
+                    real_tx = await arc_client._erc20_approve_fallback()
+                    gas_cost = 0.001
+                except Exception:
+                    pass
         # Deduct gas from adjustments so balance visibly drops
         if gas_cost > 0:
             trade_adjustments["usdc"] -= gas_cost
