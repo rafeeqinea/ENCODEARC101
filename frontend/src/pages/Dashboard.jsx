@@ -157,7 +157,7 @@ export default function Dashboard() {
                                 </defs>
                                 <XAxis dataKey="timestamp" hide />
                                 <Tooltip
-                                    contentStyle={{ background: '#fff', border: '1px solid #E5E1DB', borderRadius: 12, fontSize: 12 }}
+                                    contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 12, fontSize: 12, color: 'var(--color-text-primary)' }}
                                     labelFormatter={() => ''}
                                     formatter={(v) => [formatCurrency(v), 'Yield']}
                                 />

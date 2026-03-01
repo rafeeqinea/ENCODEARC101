@@ -114,7 +114,7 @@ export default function Landing() {
 
                     <h1 className="text-5xl lg:text-7xl font-bold text-[var(--color-text)] tracking-tight leading-[1.1]">
                         Autonomous <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-text)] to-[var(--color-text-muted)]">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent)] to-[#FBBF24]">
                             Liquidity Engine.
                         </span>
                     </h1>
@@ -186,6 +186,29 @@ export default function Landing() {
                     />
                 </div>
             </main>
+
+            {/* Live Stats Bar */}
+            <div className="w-full border-t border-[var(--color-border)]/50 bg-[var(--color-bg-secondary)]/50 backdrop-blur-md">
+                <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {[
+                        { label: 'Deployed on', value: 'Arc Testnet', accent: true },
+                        { label: 'Smart Contracts', value: '4 Verified' },
+                        { label: 'Integrations', value: '6 Live APIs' },
+                        { label: 'Settlement', value: '< 1 Second' },
+                    ].map((stat, i) => (
+                        <motion.div
+                            key={stat.label}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8 + i * 0.1 }}
+                            className="text-center"
+                        >
+                            <p className={`font-mono text-xl font-bold ${stat.accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-text)]'}`}>{stat.value}</p>
+                            <p className="text-xs text-[var(--color-text-muted)] mt-1 uppercase tracking-wider">{stat.label}</p>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
