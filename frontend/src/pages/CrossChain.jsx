@@ -4,12 +4,12 @@ import { Globe, ArrowRight, Layers, Zap, ShieldCheck, ExternalLink, CircleDot, L
 import { api } from '../lib/api'
 
 const CHAINS = [
-    { name: 'Arc Testnet', id: 5042002, status: 'Primary', active: true },
-    { name: 'Ethereum Sepolia', id: 11155111, status: 'USYC Source', active: true },
-    { name: 'Base Sepolia', id: 84532, status: 'CCTP Ready', active: true },
-    { name: 'Arbitrum Sepolia', id: 421614, status: 'CCTP Ready', active: true },
-    { name: 'Polygon', id: 137, status: 'Gateway Ready', active: true },
-    { name: 'Avalanche', id: 43114, status: 'Gateway Ready', active: true },
+    { name: 'Arc Testnet', id: 5042002, status: 'Primary', rpc: 'https://rpc.testnet.arc.network' },
+    { name: 'Ethereum Sepolia', id: 11155111, status: 'USYC Source', rpc: 'https://rpc.sepolia.org' },
+    { name: 'Base Sepolia', id: 84532, status: 'CCTP Ready', rpc: 'https://sepolia.base.org' },
+    { name: 'Arbitrum Sepolia', id: 421614, status: 'CCTP Ready', rpc: 'https://sepolia-rollup.arbitrum.io/rpc' },
+    { name: 'Polygon', id: 137, status: 'Gateway Ready', rpc: 'https://polygon-rpc.com' },
+    { name: 'Avalanche', id: 43114, status: 'Gateway Ready', rpc: 'https://api.avax.network/ext/bc/C/rpc' },
 ]
 
 const STATUS_COLORS = {
@@ -25,11 +25,36 @@ const STATUS_COLORS = {
 export default function CrossChain() {
     const [routes, setRoutes] = useState([])
     const [transfers, setTransfers] = useState([])
+    const [chainHealth, setChainHealth] = useState({}) // { chainId: true/false }
     const [fromChain, setFromChain] = useState(5042002)
     const [toChain, setToChain] = useState(11155111)
     const [amount, setAmount] = useState('1000')
     const [sending, setSending] = useState(false)
     const [lastResult, setLastResult] = useState(null)
+
+    // Ping each chain's RPC to check if it's alive
+    useEffect(() => {
+        const checkChains = async () => {
+            const results = {}
+            await Promise.all(CHAINS.map(async (chain) => {
+                try {
+                    const resp = await fetch(chain.rpc, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_chainId', params: [], id: 1 }),
+                        signal: AbortSignal.timeout(5000),
+                    })
+                    results[chain.id] = resp.ok
+                } catch {
+                    results[chain.id] = false
+                }
+            }))
+            setChainHealth(results)
+        }
+        checkChains()
+        const iv = setInterval(checkChains, 30000) // re-check every 30s
+        return () => clearInterval(iv)
+    }, [])
 
     const load = useCallback(async () => {
         try {
@@ -55,7 +80,7 @@ export default function CrossChain() {
         setSending(false)
     }
 
-    const activeChains = CHAINS.filter(c => c.active && c.id !== fromChain)
+    const activeChains = CHAINS.filter(c => chainHealth[c.id] !== false && c.id !== fromChain)
 
     return (
         <div className="max-w-[1100px] mx-auto space-y-6">
@@ -68,20 +93,27 @@ export default function CrossChain() {
             <motion.div className="card-flat" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
                 <h3 className="font-heading text-base font-semibold mb-4">Supported Chains</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {CHAINS.map((chain) => (
-                        <div key={chain.name} className={`p-3 rounded-xl border transition-colors ${chain.active ? 'border-[var(--color-accent)]/40 bg-[var(--color-accent)]/5' : 'border-[var(--color-border-light)] bg-[var(--color-bg-secondary)]'}`}>
+                    {CHAINS.map((chain) => {
+                        const alive = chainHealth[chain.id]
+                        const pending = alive === undefined
+                        const isUp = alive === true
+                        return (
+                        <div key={chain.name} className={`p-3 rounded-xl border transition-colors ${isUp ? 'border-[var(--color-accent)]/40 bg-[var(--color-accent)]/5' : pending ? 'border-[var(--color-border-light)] bg-[var(--color-bg-secondary)]' : 'border-[var(--color-danger)]/40 bg-[var(--color-danger)]/5'}`}>
                             <div className="flex items-center gap-2 mb-1">
-                                <CircleDot className={`w-3.5 h-3.5 ${chain.active ? 'text-[var(--color-success)]' : 'text-[var(--color-text-muted)]'}`} />
+                                {pending ? <Loader2 className="w-3.5 h-3.5 text-[var(--color-text-muted)] animate-spin" /> :
+                                 <CircleDot className={`w-3.5 h-3.5 ${isUp ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'}`} />}
                                 <span className="text-sm font-semibold text-[var(--color-text-primary)]">{chain.name}</span>
                             </div>
                             <p className="text-xs text-[var(--color-text-muted)] font-mono">Chain ID: {chain.id}</p>
                             <span className={`inline-block mt-1 text-[0.6rem] font-bold uppercase px-1.5 py-0.5 rounded ${
                                 chain.status === 'Primary' ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]' :
-                                chain.active ? 'bg-[var(--color-success)]/20 text-[var(--color-success)]' :
-                                'bg-[var(--color-text-muted)]/20 text-[var(--color-text-muted)]'
-                            }`}>{chain.status}</span>
+                                isUp ? 'bg-[var(--color-success)]/20 text-[var(--color-success)]' :
+                                pending ? 'bg-[var(--color-text-muted)]/20 text-[var(--color-text-muted)]' :
+                                'bg-[var(--color-danger)]/20 text-[var(--color-danger)]'
+                            }`}>{pending ? 'Checking...' : isUp ? chain.status : 'Offline'}</span>
                         </div>
-                    ))}
+                        )
+                    })}
                 </div>
             </motion.div>
 
@@ -93,7 +125,7 @@ export default function CrossChain() {
                         <label className="text-xs text-[var(--color-text-muted)] mb-1 block">From Chain</label>
                         <select value={fromChain} onChange={e => setFromChain(Number(e.target.value))}
                             className="w-full p-2.5 rounded-xl bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-sm text-[var(--color-text-primary)]">
-                            {CHAINS.filter(c => c.active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            {CHAINS.filter(c => chainHealth[c.id] !== false).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                     </div>
                     <div className="flex items-center justify-center">
