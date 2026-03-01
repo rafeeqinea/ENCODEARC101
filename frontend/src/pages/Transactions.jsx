@@ -250,7 +250,7 @@ export default function Transactions() {
                                                     </button>
                                                     {tx.on_chain && (
                                                         <a
-                                                            href={`https://testnet.arcscan.app/tx/0x${tx.tx_hash}`}
+                                                            href={`https://testnet.arcscan.app/tx/${tx.tx_hash.startsWith('0x') ? tx.tx_hash : '0x' + tx.tx_hash}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             onClick={e => e.stopPropagation()}
