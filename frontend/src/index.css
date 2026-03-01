@@ -537,3 +537,156 @@ html.dark .treasury-value {
 html.dark .card:hover {
   border-image: linear-gradient(135deg, rgba(249, 115, 22, 0.3), transparent) 1;
 }
+
+/* ═══════════════════════════════════════════════════════════ */
+/*  ALIVE EFFECTS — Deep glow, breathing, ambient motion     */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* ── Ambient background gradient pulse ── */
+@keyframes ambient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+html.dark body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 20% 80%, rgba(249, 115, 22, 0.03) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 80% at 80% 20%, rgba(251, 191, 36, 0.02) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: ambient-shift 20s ease-in-out infinite;
+  background-size: 200% 200%;
+}
+
+/* ── Card breathing border glow ── */
+@keyframes border-breathe {
+  0%, 100% { border-color: rgba(249, 115, 22, 0.06); }
+  50% { border-color: rgba(249, 115, 22, 0.12); }
+}
+
+html.dark .card-flat {
+  animation: border-breathe 4s ease-in-out infinite;
+}
+
+/* ── Deep glow on stat cards ── */
+html.dark .card:hover {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(249, 115, 22, 0.08),
+    0 0 60px rgba(249, 115, 22, 0.03);
+}
+
+/* ── Value number shimmer ── */
+@keyframes number-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+html.dark .treasury-value {
+  background: linear-gradient(90deg, #F97316 30%, #FBBF24 50%, #F97316 70%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: number-shimmer 4s linear infinite;
+}
+
+/* ── Live status ring ── */
+@keyframes ring-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+html.dark .pulse-live {
+  animation: ring-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ── Accent button deep glow ── */
+html.dark .neon-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+html.dark .neon-btn::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.4), rgba(251, 191, 36, 0.2));
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -1;
+  filter: blur(12px);
+}
+
+html.dark .neon-btn:hover::before {
+  opacity: 1;
+}
+
+/* ── Chart area glow intensify ── */
+html.dark .recharts-layer .recharts-area-area {
+  filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.15));
+}
+
+/* ── Sidebar hover trail ── */
+html.dark .nav-item {
+  position: relative;
+}
+
+html.dark .nav-item::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  background: #F97316;
+  border-radius: 1px;
+  transition: height 0.2s ease, box-shadow 0.2s ease;
+}
+
+html.dark .nav-item:hover::after {
+  height: 60%;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
+}
+
+/* ── Success toast glow ── */
+@keyframes success-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(34, 197, 94, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.25); }
+}
+
+html.dark [class*="bg-"][class*="success"] {
+  animation: success-glow 2s ease-in-out infinite;
+}
+
+/* ── Skeleton loading shimmer ── */
+@keyframes skeleton-wave {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--color-bg-secondary) 25%,
+    rgba(249, 115, 22, 0.05) 50%,
+    var(--color-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-wave 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+/* ── Focus ring for accessibility + style ── */
+html.dark *:focus-visible {
+  outline: 2px solid rgba(249, 115, 22, 0.5);
+  outline-offset: 2px;
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.15);
+}
+
+/* ── Tooltip arrow glow ── */
+html.dark .recharts-default-tooltip {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 12px rgba(249, 115, 22, 0.08) !important;
+}

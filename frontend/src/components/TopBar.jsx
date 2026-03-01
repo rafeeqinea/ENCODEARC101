@@ -59,7 +59,7 @@ export default React.memo(function TopBar({ isDemo, connected, isDark, onToggleD
                 {balances && (
                     <span className="flex items-center gap-1.5 text-[0.65rem] font-mono font-medium px-2.5 py-1 rounded-full bg-[var(--color-bg-secondary)] border border-[var(--color-border)] text-[var(--color-text-primary)]">
                         <DollarSign className="w-3 h-3 text-[var(--color-accent)]" />
-                        {(balances.total_usd || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                        <span className="treasury-value font-semibold">{(balances.total_usd || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
                         <span className="text-[var(--color-text-muted)]">TVL</span>
                     </span>
                 )}
