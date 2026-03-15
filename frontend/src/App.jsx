@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import DashboardLayout from './layouts/DashboardLayout'
 import SplashScreen from './components/SplashScreen'
 
@@ -132,6 +133,7 @@ export default function App() {
                 </Route>
               </Routes>
             </Suspense>
+            <SpeedInsights />
           </BrowserRouter>
         </motion.div>
       )}
